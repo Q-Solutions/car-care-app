@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -22,6 +24,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   final _modelController = TextEditingController();
   final _yearController = TextEditingController();
 
+  String? _imagePath;
   bool _isLoading = false;
 
   @override
@@ -45,6 +48,13 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   }
 
   void _saveVehicle() async {
+    if (_imagePath == null && widget.vehicle == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add an image of your vehicle')),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
@@ -81,6 +91,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         title: Text(widget.vehicle == null ? 'Add Vehicle' : 'Edit Vehicle', style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -89,12 +100,80 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              GestureDetector(
+                onTap: () async {
+                  final picker = ImagePicker();
+                  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _imagePath = pickedFile.path;
+                    });
+                  }
+                },
+                child: Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.primary.withOpacity(0.2),
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Center(
+                    child: _imagePath != null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check_circle, color: AppTheme.primary, size: 32),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Vehicle Image Attached',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tap to change',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.add_a_photo,
+                                color: AppTheme.primary,
+                                size: 32,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Add Vehicle Image',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: 'Nickname',
                   labelStyle: TextStyle(color: Colors.grey),
+                  fillColor: AppTheme.cardDark,
+                  filled: true,
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.primary)),
                 ),
@@ -107,6 +186,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 decoration: const InputDecoration(
                   labelText: 'Make',
                   labelStyle: TextStyle(color: Colors.grey),
+                  fillColor: AppTheme.cardDark,
+                  filled: true,
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.primary)),
                 ),
@@ -119,6 +200,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 decoration: const InputDecoration(
                   labelText: 'Model',
                   labelStyle: TextStyle(color: Colors.grey),
+                  fillColor: AppTheme.cardDark,
+                  filled: true,
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.primary)),
                 ),
@@ -132,6 +215,8 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 decoration: const InputDecoration(
                   labelText: 'Year',
                   labelStyle: TextStyle(color: Colors.grey),
+                  fillColor: AppTheme.cardDark,
+                  filled: true,
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.primary)),
                 ),
