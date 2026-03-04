@@ -18,6 +18,7 @@ import 'features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'features/vehicles/presentation/pages/garage_page.dart';
+import 'features/vehicles/presentation/pages/onboarding_page.dart';
 import 'features/reports/presentation/pages/reports_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 
@@ -100,10 +101,23 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     // We wrap the body in a SafeArea if needed, but DashboardPage handles it via Scaffold/AppBar
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+    return BlocBuilder<VehicleBloc, VehicleState>(
+      builder: (context, state) {
+        if (state.status == VehicleStatus.initial || state.status == VehicleStatus.loading) {
+          return const Scaffold(
+            backgroundColor: AppTheme.backgroundDark,
+            body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+          );
+        }
+
+        if (state.status == VehicleStatus.loaded && state.vehicles.isEmpty) {
+          return const OnboardingPage();
+        }
+
+        return Scaffold(
+          body: _pages[_selectedIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -120,14 +134,16 @@ class _MainPageState extends State<MainPage> {
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: AppTheme.primary,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: AppTheme.cardDark,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-      ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppTheme.primary,
+            unselectedItemColor: Colors.grey,
+            backgroundColor: AppTheme.cardDark,
+            type: BottomNavigationBarType.fixed,
+            onTap: _onItemTapped,
+          ),
+        );
+      },
     );
   }
 }

@@ -118,6 +118,23 @@ class _DashboardViewState extends State<DashboardView> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          if (state.recentLogs.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  "Your dashboard is looking a bit lonely! Tap the scan icon below to log your first fuel fill-up or maintenance task.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
