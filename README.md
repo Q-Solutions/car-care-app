@@ -1,4 +1,4 @@
-# CarCareApp 🚗
+# Carlog 🚗
 
 A comprehensive vehicle maintenance tracking app built with Flutter. Track fuel costs, maintenance work, and parts purchases with smart OCR receipt scanning.
 
@@ -37,18 +37,9 @@ Clean Architecture with three layers per feature:
 ```
 lib/
 ├── core/                   # Shared services, theme, config
-│   ├── services/           # OCR, Location, Analytics, Receipt Parser
-│   ├── theme/              # AppTheme (light/dark)
-│   └── config/             # Firebase module
 ├── features/
 │   ├── auth/               # Login, Signup, Forgot Password
-│   │   ├── data/           # AuthRepositoryImpl
-│   │   ├── domain/         # AuthRepository (abstract)
-│   │   └── presentation/   # AuthBloc, LoginPage, SignupPage
 │   ├── logs/               # Fuel & Maintenance logging
-│   │   ├── data/           # Models, LogRepositoryImpl
-│   │   ├── domain/         # LogRepository, LogStatsService
-│   │   └── presentation/   # QuickLogBloc, DashboardBloc, Pages
 │   ├── vehicles/           # Vehicle management (Garage)
 │   ├── reports/            # Reports with 3 tabs
 │   └── settings/           # Profile, Notifications, Privacy, Help
@@ -68,14 +59,14 @@ lib/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd car-care-app
+cd carlog
 
 # Install dependencies
 flutter pub get
 
 # Generate injectable config (if needed)
 flutter pub run build_runner build --delete-conflicting-outputs
-
+```
 # Run the app
 flutter run
 ```

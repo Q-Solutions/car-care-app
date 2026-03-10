@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -6,7 +6,7 @@ part 'vehicle_model.g.dart';
 
 @HiveType(typeId: 2)
 @JsonSerializable(explicitToJson: true)
-class VehicleModel {
+class VehicleModel extends Equatable {
   @HiveField(0)
   final String id;
 
@@ -34,4 +34,7 @@ class VehicleModel {
       _$VehicleModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$VehicleModelToJson(this);
+
+  @override
+  List<Object?> get props => [id, name, make, model, year];
 }

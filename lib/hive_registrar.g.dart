@@ -3,10 +3,10 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
-import 'package:car_care_app/features/logs/data/models/fuel_log_model.dart';
-import 'package:car_care_app/features/logs/data/models/location_model.dart';
-import 'package:car_care_app/features/logs/data/models/maintenance_log_model.dart';
-import 'package:car_care_app/features/vehicles/data/models/vehicle_model.dart';
+import 'package:carlog/features/logs/data/models/fuel_log_model.dart';
+import 'package:carlog/features/logs/data/models/location_model.dart';
+import 'package:carlog/features/logs/data/models/maintenance_log_model.dart';
+import 'package:carlog/features/vehicles/data/models/vehicle_model.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {

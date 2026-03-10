@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:car_care_app/core/services/receipt_parser_service.dart';
+import 'package:carlog/core/services/receipt_parser_service.dart';
 
 void main() {
   late ReceiptParserService service;

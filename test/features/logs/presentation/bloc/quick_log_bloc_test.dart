@@ -1,17 +1,17 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:car_care_app/core/services/location_service.dart';
-import 'package:car_care_app/core/services/ocr_service.dart';
-import 'package:car_care_app/features/logs/data/models/fuel_log_model.dart';
-import 'package:car_care_app/features/logs/data/models/location_model.dart';
-import 'package:car_care_app/features/logs/domain/repositories/log_repository.dart';
-import 'package:car_care_app/features/logs/presentation/bloc/quick_log_bloc.dart';
-import 'package:car_care_app/features/logs/presentation/bloc/quick_log_event.dart';
-import 'package:car_care_app/features/logs/presentation/bloc/quick_log_state.dart';
+import 'package:carlog/core/services/location_service.dart';
+import 'package:carlog/core/services/ocr_service.dart';
+import 'package:carlog/features/logs/data/models/fuel_log_model.dart';
+import 'package:carlog/features/logs/data/models/location_model.dart';
+import 'package:carlog/features/logs/domain/repositories/log_repository.dart';
+import 'package:carlog/features/logs/presentation/bloc/quick_log_bloc.dart';
+import 'package:carlog/features/logs/presentation/bloc/quick_log_event.dart';
+import 'package:carlog/features/logs/presentation/bloc/quick_log_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:car_care_app/core/services/receipt_parser_service.dart';
+import 'package:carlog/core/services/receipt_parser_service.dart';
 
 // Generate mocks
 @GenerateMocks([LogRepository, LocationService, OCRService, ReceiptParserService])

@@ -1,22 +1,27 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:car_care_app/features/logs/presentation/bloc/dashboard_bloc.dart';
-import 'package:car_care_app/main.dart';
-import 'package:car_care_app/features/vehicles/presentation/bloc/vehicle_bloc.dart';
-import 'package:car_care_app/features/vehicles/domain/repositories/vehicle_repository.dart';
-import 'package:car_care_app/features/vehicles/data/models/vehicle_model.dart';
+import 'package:carlog/features/logs/presentation/bloc/dashboard_bloc.dart';
+import 'package:carlog/main.dart';
+import 'package:carlog/features/vehicles/presentation/bloc/vehicle_bloc.dart';
+import 'package:carlog/features/vehicles/domain/repositories/vehicle_repository.dart';
+import 'package:carlog/features/vehicles/data/models/vehicle_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState> implements DashboardBloc {}
+import 'package:carlog/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:carlog/features/auth/presentation/bloc/auth_event.dart';
+import 'package:carlog/features/auth/presentation/bloc/auth_state.dart';
 
+class MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState> implements DashboardBloc {}
 class MockVehicleBloc extends MockBloc<VehicleEvent, VehicleState> implements VehicleBloc {}
+class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
 class FakeDashboardEvent extends Fake implements DashboardEvent {}
 class FakeDashboardState extends Fake implements DashboardState {}
-
 class FakeVehicleEvent extends Fake implements VehicleEvent {}
 class FakeVehicleState extends Fake implements VehicleState {}
+class FakeAuthEvent extends Fake implements AuthEvent {}
+class FakeAuthState extends Fake implements AuthState {}
 
 void main() {
   setUpAll(() {
@@ -25,12 +30,15 @@ void main() {
     registerFallbackValue(SubscribeToLogs());
     registerFallbackValue(FakeVehicleEvent());
     registerFallbackValue(FakeVehicleState());
+    registerFallbackValue(FakeAuthEvent());
+    registerFallbackValue(FakeAuthState());
   });
 
   setUp(() {
     final getIt = GetIt.instance;
     final mockBloc = MockDashboardBloc();
     final mockVehicleBloc = MockVehicleBloc();
+    final mockAuthBloc = MockAuthBloc();
 
     when(() => mockBloc.state).thenReturn(const DashboardState(status: DashboardStatus.loaded));
     when(() => mockBloc.stream).thenAnswer((_) => Stream.value(const DashboardState(status: DashboardStatus.loaded)));
@@ -43,6 +51,12 @@ void main() {
     when(() => mockVehicleBloc.close()).thenAnswer((_) async {});
     when(() => mockVehicleBloc.add(any())).thenReturn(null);
 
+    final aState = AuthState(status: AuthStatus.authenticated);
+    when(() => mockAuthBloc.state).thenReturn(aState);
+    when(() => mockAuthBloc.stream).thenAnswer((_) => Stream.value(aState));
+    when(() => mockAuthBloc.close()).thenAnswer((_) async {});
+    when(() => mockAuthBloc.add(any())).thenReturn(null);
+
     if (getIt.isRegistered<DashboardBloc>()) {
       getIt.unregister<DashboardBloc>();
     }
@@ -52,6 +66,11 @@ void main() {
       getIt.unregister<VehicleBloc>();
     }
     getIt.registerFactory<VehicleBloc>(() => mockVehicleBloc);
+
+    if (getIt.isRegistered<AuthBloc>()) {
+      getIt.unregister<AuthBloc>();
+    }
+    getIt.registerFactory<AuthBloc>(() => mockAuthBloc);
   });
 
   testWidgets('App initialization test', (WidgetTester tester) async {

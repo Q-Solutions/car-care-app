@@ -1,6 +1,6 @@
 {
-    "name": "car_care_app",
-    "short_name": "car_care_app",
+    "name": "Carlog",
+    "short_name": "Carlog",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

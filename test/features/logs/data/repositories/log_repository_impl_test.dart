@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:car_care_app/features/logs/data/models/fuel_log_model.dart';
-import 'package:car_care_app/features/logs/data/models/location_model.dart';
-import 'package:car_care_app/features/logs/data/repositories/log_repository_impl.dart';
+import 'package:carlog/features/logs/data/models/fuel_log_model.dart';
+import 'package:carlog/features/logs/data/models/location_model.dart';
+import 'package:carlog/features/logs/data/repositories/log_repository_impl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';

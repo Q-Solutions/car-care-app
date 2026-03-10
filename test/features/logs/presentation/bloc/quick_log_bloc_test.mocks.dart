@@ -5,14 +5,14 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:car_care_app/core/services/location_service.dart' as _i8;
-import 'package:car_care_app/core/services/ocr_service.dart' as _i10;
-import 'package:car_care_app/core/services/receipt_parser_service.dart' as _i3;
-import 'package:car_care_app/features/logs/data/models/fuel_log_model.dart'
+import 'package:carlog/core/services/location_service.dart' as _i8;
+import 'package:carlog/core/services/ocr_service.dart' as _i10;
+import 'package:carlog/core/services/receipt_parser_service.dart' as _i3;
+import 'package:carlog/features/logs/data/models/fuel_log_model.dart'
     as _i6;
-import 'package:car_care_app/features/logs/data/models/maintenance_log_model.dart'
+import 'package:carlog/features/logs/data/models/maintenance_log_model.dart'
     as _i7;
-import 'package:car_care_app/features/logs/domain/repositories/log_repository.dart'
+import 'package:carlog/features/logs/domain/repositories/log_repository.dart'
     as _i4;
 import 'package:geolocator/geolocator.dart' as _i9;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart'

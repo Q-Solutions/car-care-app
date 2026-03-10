@@ -5,10 +5,11 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection.dart';
-import '../../../vehicles/presentation/bloc/vehicle_bloc.dart';
-import '../../../logs/domain/repositories/log_repository.dart';
 import '../../../logs/data/models/fuel_log_model.dart';
 import '../../../logs/data/models/maintenance_log_model.dart';
+import 'package:carlog/features/reports/presentation/bloc/reports_bloc.dart';
+import 'package:carlog/features/reports/presentation/bloc/reports_event.dart';
+import 'package:carlog/features/reports/presentation/bloc/reports_state.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -19,32 +20,11 @@ class ReportsPage extends StatefulWidget {
 
 class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final _logRepository = getIt<LogRepository>();
-
-  List<FuelLogModel> _fuelLogs = [];
-  List<MaintenanceLogModel> _maintenanceLogs = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final fuelLogs = await _logRepository.getRecentFuelLogs();
-      final maintenanceLogs = await _logRepository.getMaintenanceLogs();
-
-      setState(() {
-        _fuelLogs = fuelLogs;
-        _maintenanceLogs = maintenanceLogs;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
   }
 
   @override
@@ -55,55 +35,68 @@ class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Reports', style: GoogleFonts.inter(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        )),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.grey[500],
-          indicatorColor: AppTheme.primary,
-          indicatorWeight: 3,
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-          tabs: const [
-            Tab(text: 'Refueling'),
-            Tab(text: 'Maintenance'),
-            Tab(text: 'Parts & Tools'),
-          ],
+    return BlocProvider(
+      create: (context) => getIt<ReportsBloc>()..add(LoadReports()),
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text('Reports', style: GoogleFonts.inter(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          )),
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.grey[500],
+            indicatorColor: AppTheme.primary,
+            indicatorWeight: 3,
+            labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
+            tabs: const [
+              Tab(text: 'Refueling'),
+              Tab(text: 'Maintenance'),
+              Tab(text: 'Parts & Tools'),
+            ],
+          ),
         ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : Column(
+        body: BlocBuilder<ReportsBloc, ReportsState>(
+          builder: (context, state) {
+            if (state.status == ReportsStatus.loading || state.status == ReportsStatus.initial) {
+              return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+            }
+
+            if (state.status == ReportsStatus.error) {
+              return Center(child: Text('Error: ${state.errorMessage}', style: const TextStyle(color: Colors.red)));
+            }
+
+            return Column(
               children: [
-                _buildSummaryCards(),
+                _buildSummaryCards(state),
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildRefuelingTab(),
-                      _buildMaintenanceTab(),
-                      _buildPartsTab(),
+                      _buildRefuelingTab(state),
+                      _buildMaintenanceTab(state),
+                      _buildPartsTab(state),
                     ],
                   ),
                 ),
               ],
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildSummaryCards() {
-    final totalFuelCost = _fuelLogs.fold<double>(0, (sum, log) => sum + log.cost);
-    final totalMaintenanceCost = _maintenanceLogs.fold<double>(0, (sum, log) => sum + log.cost);
-    final totalRefuels = _fuelLogs.length;
-    final totalServices = _maintenanceLogs.where((l) => l.category != 'Parts').length;
+  Widget _buildSummaryCards(ReportsState state) {
+    final totalFuelCost = state.fuelLogs.fold<double>(0, (sum, log) => sum + log.cost);
+    final totalMaintenanceCost = state.maintenanceLogs.fold<double>(0, (sum, log) => sum + log.cost);
+    final totalRefuels = state.fuelLogs.length;
+    final totalServices = state.maintenanceLogs.where((l) => l.category != 'Parts').length;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -161,14 +154,14 @@ class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildRefuelingTab() {
-    if (_fuelLogs.isEmpty) {
+  Widget _buildRefuelingTab(ReportsState state) {
+    if (state.fuelLogs.isEmpty) {
       return _buildEmptyState('No refueling records yet', Icons.local_gas_station);
     }
 
-    final totalCost = _fuelLogs.fold<double>(0, (sum, l) => sum + l.cost);
-    final totalLiters = _fuelLogs.fold<double>(0, (sum, l) => sum + l.liters);
-    final avgCostPerFill = _fuelLogs.isNotEmpty ? totalCost / _fuelLogs.length : 0.0;
+    final totalCost = state.fuelLogs.fold<double>(0, (sum, l) => sum + l.cost);
+    final totalLiters = state.fuelLogs.fold<double>(0, (sum, l) => sum + l.liters);
+    final avgCostPerFill = state.fuelLogs.isNotEmpty ? totalCost / state.fuelLogs.length : 0.0;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -198,7 +191,7 @@ class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStat
         const SizedBox(height: 16),
         Text('History', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
         const SizedBox(height: 8),
-        ..._fuelLogs.map((log) => _fuelLogCard(log)),
+        ...state.fuelLogs.map((log) => _fuelLogCard(log)),
       ],
     );
   }
@@ -265,8 +258,8 @@ class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildMaintenanceTab() {
-    final maintenanceLogs = _maintenanceLogs.where((l) => l.category != 'Parts').toList();
+  Widget _buildMaintenanceTab(ReportsState state) {
+    final maintenanceLogs = state.maintenanceLogs.where((l) => l.category != 'Parts').toList();
 
     if (maintenanceLogs.isEmpty) {
       return _buildEmptyState('No maintenance records yet', Icons.build);
@@ -330,8 +323,8 @@ class _ReportsPageState extends State<ReportsPage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildPartsTab() {
-    final partsLogs = _maintenanceLogs.where((l) => l.category == 'Parts').toList();
+  Widget _buildPartsTab(ReportsState state) {
+    final partsLogs = state.maintenanceLogs.where((l) => l.category == 'Parts').toList();
 
     if (partsLogs.isEmpty) {
       return _buildEmptyState('No parts purchased yet', Icons.shopping_cart);

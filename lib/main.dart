@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:car_care_app/firebase_options.dart';
-import 'package:car_care_app/injection.dart';
+import 'package:carlog/firebase_options.dart';
+import 'package:carlog/injection.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';

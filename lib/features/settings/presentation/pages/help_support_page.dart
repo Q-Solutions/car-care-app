@@ -42,7 +42,7 @@ class HelpSupportPage extends StatelessWidget {
                   child: const Icon(Icons.directions_car, color: AppTheme.primary, size: 32),
                 ),
                 const SizedBox(height: 12),
-                Text('CarCareApp', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text('Carlog', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 4),
                 Text('v1.0.0', style: GoogleFonts.inter(color: Colors.grey[400])),
                 const SizedBox(height: 8),
@@ -66,7 +66,7 @@ class HelpSupportPage extends StatelessWidget {
           _faqTile('Is my data stored securely?',
             'Yes, your data is stored locally on your device using encrypted storage and synced to Firebase Firestore with user-level authentication. Only you can access your data.'),
           _faqTile('Can I use the app offline?',
-            'Absolutely! CarCareApp works offline-first. All your data is saved locally and automatically syncs when you reconnect to the internet.'),
+            'Absolutely! Carlog works offline-first. All your data is saved locally and automatically syncs when you reconnect to the internet.'),
           _faqTile('How do I share my cost-per-KM?',
             'From the dashboard, tap the share icon in the top-right corner. You\'ll get a shareable card with your vehicle\'s cost-per-KM metric.'),
 
@@ -78,17 +78,17 @@ class HelpSupportPage extends StatelessWidget {
             icon: Icons.feedback_outlined,
             iconColor: AppTheme.primary,
             onTap: () {
-              final uri = Uri(scheme: 'mailto', path: 'support@carcareapp.com', queryParameters: {'subject': 'CarCareApp Feedback'});
+              final uri = Uri(scheme: 'mailto', path: 'support@carlog.com', queryParameters: {'subject': 'Carlog Feedback'});
               launchUrl(uri);
             },
           ),
           _actionTile(
             title: 'Contact Us',
-            subtitle: 'support@carcareapp.com',
+            subtitle: 'support@carlog.com',
             icon: Icons.email_outlined,
             iconColor: Colors.green,
             onTap: () {
-              final uri = Uri(scheme: 'mailto', path: 'support@carcareapp.com');
+              final uri = Uri(scheme: 'mailto', path: 'support@carlog.com');
               launchUrl(uri);
             },
           ),

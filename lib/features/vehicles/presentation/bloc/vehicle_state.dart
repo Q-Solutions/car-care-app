@@ -2,7 +2,7 @@ part of 'vehicle_bloc.dart';
 
 enum VehicleStatus { initial, loading, loaded, error }
 
-class VehicleState {
+class VehicleState extends Equatable {
   final VehicleStatus status;
   final List<VehicleModel> vehicles;
   final VehicleModel? selectedVehicle;
@@ -24,4 +24,7 @@ class VehicleState {
       selectedVehicle: selectedVehicle ?? this.selectedVehicle,
     );
   }
+
+  @override
+  List<Object?> get props => [status, vehicles, selectedVehicle];
 }

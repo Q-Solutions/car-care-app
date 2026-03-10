@@ -1,6 +1,6 @@
-import 'package:car_care_app/features/logs/data/models/fuel_log_model.dart';
-import 'package:car_care_app/features/logs/data/models/location_model.dart';
-import 'package:car_care_app/features/logs/domain/log_stats_service.dart';
+import 'package:carlog/features/logs/data/models/fuel_log_model.dart';
+import 'package:carlog/features/logs/data/models/location_model.dart';
+import 'package:carlog/features/logs/domain/log_stats_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 

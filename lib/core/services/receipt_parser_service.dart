@@ -352,10 +352,9 @@ class ReceiptParserService {
   /// Extract store/mechanic name (typically the first line with text)
   String? extractBusinessName(String text) {
     final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
-    if (lines.isNotEmpty) {
-      final firstLine = lines.first;
-      if (RegExp(r'[a-zA-Z]').hasMatch(firstLine) && firstLine.length > 2) {
-        return firstLine;
+    for (var line in lines) {
+      if (RegExp(r'[a-zA-Z]').hasMatch(line) && line.length > 2) {
+        return line;
       }
     }
     return null;

@@ -4,7 +4,7 @@ enum DashboardStatus { loading, loaded, error }
 
 enum LogType { fuel, service }
 
-class DashboardLogItem {
+class DashboardLogItem extends Equatable {
   final String id;
   final String title;
   final String subtitle;
@@ -20,9 +20,12 @@ class DashboardLogItem {
     required this.date,
     required this.type,
   });
+
+  @override
+  List<Object?> get props => [id, title, subtitle, amount, date, type];
 }
 
-class DashboardState {
+class DashboardState extends Equatable {
   final DashboardStatus status;
   final List<FuelLogModel> fuelLogs;
   final List<MaintenanceLogModel> maintenanceLogs;
@@ -82,4 +85,20 @@ class DashboardState {
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        status,
+        fuelLogs,
+        maintenanceLogs,
+        avgCostPerKm,
+        totalFuelCost,
+        totalMaintenanceCost,
+        lastServiceCost,
+        lastServiceDate,
+        lastRefuelDate,
+        odometer,
+        recentLogs,
+        errorMessage,
+      ];
 }

@@ -29,6 +29,7 @@ import 'features/logs/data/repositories/log_repository_impl.dart' as _i425;
 import 'features/logs/domain/repositories/log_repository.dart' as _i349;
 import 'features/logs/presentation/bloc/dashboard_bloc.dart' as _i958;
 import 'features/logs/presentation/bloc/quick_log_bloc.dart' as _i795;
+import 'features/reports/presentation/bloc/reports_bloc.dart' as _i866;
 import 'features/vehicles/data/repositories/vehicle_repository_impl.dart'
     as _i186;
 import 'features/vehicles/domain/repositories/vehicle_repository.dart' as _i737;
@@ -75,6 +76,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i958.DashboardBloc>(
       () => _i958.DashboardBloc(gh<_i349.LogRepository>()),
+    );
+    gh.factory<_i866.ReportsBloc>(
+      () => _i866.ReportsBloc(gh<_i349.LogRepository>()),
     );
     gh.factory<_i795.QuickLogBloc>(
       () => _i795.QuickLogBloc(

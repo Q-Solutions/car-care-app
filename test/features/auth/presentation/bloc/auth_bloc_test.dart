@@ -6,10 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:car_care_app/features/auth/domain/repositories/auth_repository.dart';
-import 'package:car_care_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:car_care_app/features/auth/presentation/bloc/auth_event.dart';
-import 'package:car_care_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:carlog/features/auth/domain/repositories/auth_repository.dart';
+import 'package:carlog/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:carlog/features/auth/presentation/bloc/auth_event.dart';
+import 'package:carlog/features/auth/presentation/bloc/auth_state.dart';
 
 @GenerateNiceMocks([
   MockSpec<AuthRepository>(),
