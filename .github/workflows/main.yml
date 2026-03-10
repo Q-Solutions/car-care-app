@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
 
       - name: Install Dependencies
         run: flutter pub get
@@ -27,11 +27,15 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Upload to Firebase App Distribution
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: w9jds/firebase-action@master
-        with:
-          args: appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app "${{ secrets.FIREBASE_APP_ID }}" --groups "testers" --release-notes "New release from GitHub Actions"
+        run: |
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+          --app ${{ secrets.FIREBASE_APP_ID }} \
+          --groups testers \
+          --release-notes "New release from GitHub Actions"
         env:
-          #GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
