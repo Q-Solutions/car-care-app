@@ -43,6 +43,8 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final firebaseModule = _$FirebaseModule();
+    gh.lazySingleton<_i59.FirebaseAuth>(() => firebaseModule.firebaseAuth);
+    gh.lazySingleton<_i116.GoogleSignIn>(() => firebaseModule.googleSignIn);
     gh.lazySingleton<_i398.FirebaseAnalytics>(() => firebaseModule.analytics);
     gh.lazySingleton<_i346.FirebasePerformance>(
       () => firebaseModule.performance,
@@ -53,11 +55,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i729.ReceiptParserService>(
       () => _i729.ReceiptParserService(),
     );
-    gh.lazySingleton<_i349.LogRepository>(
-      () => _i425.LogRepositoryImpl(gh<_i974.FirebaseFirestore>()),
-    );
     gh.lazySingleton<_i737.VehicleRepository>(
       () => _i186.VehicleRepositoryImpl(gh<_i974.FirebaseFirestore>()),
+    );
+    gh.lazySingleton<_i1015.AuthRepository>(
+      () => _i111.AuthRepositoryImpl(
+        gh<_i59.FirebaseAuth>(),
+        gh<_i116.GoogleSignIn>(),
+      ),
     );
     gh.factory<_i114.VehicleBloc>(
       () => _i114.VehicleBloc(gh<_i737.VehicleRepository>()),
@@ -68,11 +73,11 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i346.FirebasePerformance>(),
       ),
     );
-    gh.lazySingleton<_i1015.AuthRepository>(
-      () => _i111.AuthRepositoryImpl(
-        gh<_i59.FirebaseAuth>(),
-        gh<_i116.GoogleSignIn>(),
-      ),
+    gh.lazySingleton<_i349.LogRepository>(
+      () => _i425.LogRepositoryImpl(gh<_i974.FirebaseFirestore>()),
+    );
+    gh.factory<_i363.AuthBloc>(
+      () => _i363.AuthBloc(gh<_i1015.AuthRepository>()),
     );
     gh.factory<_i958.DashboardBloc>(
       () => _i958.DashboardBloc(gh<_i349.LogRepository>()),
@@ -87,9 +92,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i349.LogRepository>(),
         gh<_i729.ReceiptParserService>(),
       ),
-    );
-    gh.factory<_i363.AuthBloc>(
-      () => _i363.AuthBloc(gh<_i1015.AuthRepository>()),
     );
     return this;
   }

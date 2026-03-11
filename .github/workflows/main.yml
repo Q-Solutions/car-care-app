@@ -18,6 +18,9 @@ jobs:
         with:
           channel: stable
 
+      - name: Create google-services.json
+        run: echo '${{ secrets.GCP_SA_KEY }}' > android/app/google-services.json
+
       - name: Install Dependencies
         run: flutter pub get
 
