@@ -57,9 +57,10 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   }
 
   Future<void> _onDeleteVehicle(DeleteVehicle event, Emitter<VehicleState> emit) async {
+    emit(state.copyWith(status: VehicleStatus.loading));
     try {
       await _vehicleRepository.deleteVehicle(event.id);
-      // The stream will handle updating the list and removing the selected vehicle if needed.
+      emit(state.copyWith(status: VehicleStatus.loaded));
     } catch (e) {
       emit(state.copyWith(status: VehicleStatus.error));
     }

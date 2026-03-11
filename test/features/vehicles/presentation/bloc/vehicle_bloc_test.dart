@@ -91,6 +91,7 @@ void main() {
       },
       act: (bloc) => bloc.add(DeleteVehicle('1')),
       expect: () => [
+        const VehicleState(status: VehicleStatus.loading),
         const VehicleState(status: VehicleStatus.error),
       ],
     );
@@ -103,6 +104,10 @@ void main() {
         return vehicleBloc;
       },
       act: (bloc) => bloc.add(DeleteVehicle('1')),
+      expect: () => [
+        const VehicleState(status: VehicleStatus.loading),
+        const VehicleState(status: VehicleStatus.loaded),
+      ],
       verify: (_) {
         verify(() => mockVehicleRepository.deleteVehicle('1')).called(1);
       },
