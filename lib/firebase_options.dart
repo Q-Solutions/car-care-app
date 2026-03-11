@@ -39,19 +39,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'replace-with-your-api-key',
-    appId: 'replace-with-your-app-id',
-    messagingSenderId: 'replace-with-your-messaging-sender-id',
-    projectId: 'replace-with-your-project-id',
-    storageBucket: 'replace-with-your-storage-bucket',
+    apiKey: String.fromEnvironment('ANDROID_API_KEY'),
+    appId: String.fromEnvironment('ANDROID_APP_ID'),
+    messagingSenderId: String.fromEnvironment('MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('PROJECT_ID'),
+    storageBucket: String.fromEnvironment('STORAGE_BUCKET'),
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'replace-with-your-api-key',
-    appId: 'replace-with-your-app-id',
-    messagingSenderId: 'replace-with-your-messaging-sender-id',
-    projectId: 'replace-with-your-project-id',
-    storageBucket: 'replace-with-your-storage-bucket',
-    iosBundleId: 'com.example.carCareApp',
+    apiKey: String.fromEnvironment('IOS_API_KEY'),
+    appId: String.fromEnvironment('IOS_APP_ID'),
+    messagingSenderId: String.fromEnvironment('MESSAGING_SENDER_ID'),
+    projectId: String.fromEnvironment('PROJECT_ID'),
+    storageBucket: String.fromEnvironment('STORAGE_BUCKET'),
+    iosBundleId: String.fromEnvironment('IOS_BUNDLE_ID'),
   );
 }

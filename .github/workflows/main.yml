@@ -19,7 +19,7 @@ jobs:
           channel: stable
 
       - name: Create google-services.json
-        run: echo "$GCP_SA_KEY" | base64 --decode > android/app/google-services.json
+        run: printenv GCP_SA_KEY > android/app/google-services.json
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
 
@@ -28,14 +28,25 @@ jobs:
           ls android/app
           cat android/app/google-services.json
           
+      - name: Create .env file
+        run: |
+          echo "ANDROID_API_KEY=${{ secrets.ANDROID_API_KEY }}" > .env
+          echo "ANDROID_APP_ID=${{ secrets.ANDROID_APP_ID }}" >> .env
+          echo "MESSAGING_SENDER_ID=${{ secrets.MESSAGING_SENDER_ID }}" >> .env
+          echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> .env
+          echo "STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" >> .env
+          echo "IOS_API_KEY=${{ secrets.IOS_API_KEY }}" >> .env
+          echo "IOS_APP_ID=${{ secrets.IOS_APP_ID }}" >> .env
+          echo "IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID }}" >> .env
+
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Run Tests
-        run: flutter test
+        run: flutter test --dart-define-from-file=.env
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define-from-file=.env
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
