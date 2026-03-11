@@ -4,9 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-
 // Mocks will be generated in a test file instead to avoid issues with build_runner
 
 @module

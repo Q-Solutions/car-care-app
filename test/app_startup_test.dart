@@ -14,7 +14,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 
 @GenerateNiceMocks([
   MockSpec<FirebaseAuth>(),

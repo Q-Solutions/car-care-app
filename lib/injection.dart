@@ -13,7 +13,9 @@ final getIt = GetIt.instance;
   asExtension: true, // default
 )
 void configureDependencies({String? environment}) {
-  getIt.init(environment: environment);
+  // Default to prod environment if not specified
+  final env = environment ?? 'prod';
+  getIt.init(environment: env);
 
   // Dependencies that are missing the @injectable annotation
   if (!getIt.isRegistered<ExpenseLogBloc>()) {

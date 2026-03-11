@@ -35,6 +35,13 @@ void main() async {
       );
       debugPrint("Firebase initialized");
 
+      // Check if Firebase configuration was loaded correctly
+      if (DefaultFirebaseOptions.android.appId.isEmpty || DefaultFirebaseOptions.android.appId.startsWith('1:')) {
+         if (DefaultFirebaseOptions.android.appId.isEmpty) {
+           debugPrint("WARNING: Firebase App ID is empty! Did you forget to run with --dart-define-from-file=.env?");
+         }
+      }
+
       // Pass all uncaught "fatal" errors from the framework to Crashlytics
       FlutterError.onError = (details) {
         FlutterError.dumpErrorToConsole(details);
