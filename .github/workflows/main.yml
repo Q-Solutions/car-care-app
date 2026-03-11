@@ -19,7 +19,9 @@ jobs:
           channel: stable
 
       - name: Create google-services.json
-        run: echo '${{ secrets.GCP_SA_KEY }}' > android/app/google-services.json
+        run: echo "$GCP_SA_KEY" | base64 --decode > android/app/google-services.json
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
 
       - name: Verify google-services.json
         run: |
