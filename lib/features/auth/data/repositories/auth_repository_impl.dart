@@ -39,25 +39,28 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-    if (googleUser == null) {
-      throw FirebaseAuthException(
-        code: 'google-sign-in-cancelled',
-        message: 'Google sign-in was cancelled by user',
+    try {
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      
+      // In google_sign_in 7.x, accessToken is obtained via authorizationClient
+      final clientAuth = await googleUser.authorizationClient.authorizationForScopes([]);
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: clientAuth?.accessToken,
+        idToken: googleAuth.idToken,
       );
+
+      return await _firebaseAuth.signInWithCredential(credential);
+    } catch (e) {
+      if (e is GoogleSignInException || e.toString().contains('cancelled')) {
+        throw FirebaseAuthException(
+          code: 'google-sign-in-cancelled',
+          message: 'Google sign-in was cancelled by user',
+        );
+      }
+      rethrow;
     }
-
-    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-    
-    // In google_sign_in 7.x, accessToken is obtained via authorizationClient
-    final clientAuth = await googleUser.authorizationClient.authorizationForScopes([]);
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: clientAuth?.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    return await _firebaseAuth.signInWithCredential(credential);
   }
 
   @override

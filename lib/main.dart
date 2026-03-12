@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -34,6 +35,11 @@ void main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       debugPrint("Firebase initialized");
+
+      // Initialize GoogleSignIn (required in 7.x)
+      debugPrint("Initializing GoogleSignIn...");
+      await GoogleSignIn.instance.initialize();
+      debugPrint("GoogleSignIn initialized");
 
       // Check if Firebase configuration was loaded correctly
       if (DefaultFirebaseOptions.android.appId.isEmpty || DefaultFirebaseOptions.android.appId.startsWith('1:')) {

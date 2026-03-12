@@ -166,7 +166,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case 'invalid-credential':
         return 'Invalid email or password';
       default:
-        return 'Authentication failed. Please try again';
+        return 'Authentication failed ($code). Please try again';
     }
   }
 
