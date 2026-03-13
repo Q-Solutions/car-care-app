@@ -38,7 +38,8 @@ void main() {
         latitude: 0,
         longitude: 0,
         timestamp: DateTime(2026, 3, 1),
-      )
+      ),
+      userId: 'test_user',
     ),
   ];
 
@@ -49,7 +50,8 @@ void main() {
       date: DateTime(2026, 3, 1),
       category: 'Service',
       cost: 50.0,
-      note: ''
+      note: '',
+      userId: 'test_user',
     ),
     MaintenanceLogModel(
       id: '2',
@@ -58,6 +60,7 @@ void main() {
       category: 'Parts',
       cost: 20.0,
       note: 'Oil Filter',
+      userId: 'test_user',
     ),
   ];
 

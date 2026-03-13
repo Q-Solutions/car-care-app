@@ -37,6 +37,9 @@ class FuelLogModel {
   @HiveField(8)
   final String? odometerPhotoPath;
 
+  @HiveField(9)
+  final String userId;
+
   FuelLogModel({
     required this.id,
     required this.odometer,
@@ -44,6 +47,7 @@ class FuelLogModel {
     required this.cost,
     required this.timestamp,
     required this.location,
+    required this.userId,
     this.vehicleId,
     this.stationName,
     this.odometerPhotoPath,

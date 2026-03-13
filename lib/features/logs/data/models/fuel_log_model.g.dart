@@ -23,6 +23,7 @@ class FuelLogModelAdapter extends TypeAdapter<FuelLogModel> {
       cost: (fields[3] as num).toDouble(),
       timestamp: fields[4] as DateTime,
       location: fields[5] as LocationModel,
+      userId: fields[9] as String,
       vehicleId: fields[6] as String?,
       stationName: fields[7] as String?,
       odometerPhotoPath: fields[8] as String?,
@@ -32,7 +33,7 @@ class FuelLogModelAdapter extends TypeAdapter<FuelLogModel> {
   @override
   void write(BinaryWriter writer, FuelLogModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class FuelLogModelAdapter extends TypeAdapter<FuelLogModel> {
       ..writeByte(7)
       ..write(obj.stationName)
       ..writeByte(8)
-      ..write(obj.odometerPhotoPath);
+      ..write(obj.odometerPhotoPath)
+      ..writeByte(9)
+      ..write(obj.userId);
   }
 
   @override
@@ -75,6 +78,7 @@ FuelLogModel _$FuelLogModelFromJson(Map<String, dynamic> json) => FuelLogModel(
   cost: (json['cost'] as num).toDouble(),
   timestamp: FuelLogModel._fromJson(json['timestamp'] as Timestamp),
   location: LocationModel.fromJson(json['location'] as Map<String, dynamic>),
+  userId: json['userId'] as String,
   vehicleId: json['vehicleId'] as String?,
   stationName: json['stationName'] as String?,
   odometerPhotoPath: json['odometerPhotoPath'] as String?,
@@ -91,4 +95,5 @@ Map<String, dynamic> _$FuelLogModelToJson(FuelLogModel instance) =>
       'vehicleId': instance.vehicleId,
       'stationName': instance.stationName,
       'odometerPhotoPath': instance.odometerPhotoPath,
+      'userId': instance.userId,
     };

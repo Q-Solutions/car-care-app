@@ -22,8 +22,8 @@ void main() {
   });
 
   final tVehicles = [
-    VehicleModel(id: '1', name: 'Car 1', make: 'Toyota', model: 'Corolla', year: 2020),
-    VehicleModel(id: '2', name: 'Car 2', make: 'Honda', model: 'Civic', year: 2021),
+    VehicleModel(id: '1', name: 'Car 1', make: 'Toyota', model: 'Corolla', year: 2020, userId: 'test_user'),
+    VehicleModel(id: '2', name: 'Car 2', make: 'Honda', model: 'Civic', year: 2021, userId: 'test_user'),
   ];
 
   group('VehicleBloc', () {

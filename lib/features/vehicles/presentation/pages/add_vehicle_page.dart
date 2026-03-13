@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
@@ -64,6 +65,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         make: _makeController.text.trim(),
         model: _modelController.text.trim(),
         year: int.parse(_yearController.text.trim()),
+        userId: widget.vehicle?.userId ?? FirebaseAuth.instance.currentUser?.uid ?? '',
       );
 
       try {

@@ -22,12 +22,16 @@ class VehicleModel extends Equatable {
   @HiveField(4)
   final int year;
 
+  @HiveField(5)
+  final String userId;
+
   VehicleModel({
     required this.id,
     required this.name,
     required this.make,
     required this.model,
     required this.year,
+    required this.userId,
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) =>
@@ -36,5 +40,5 @@ class VehicleModel extends Equatable {
   Map<String, dynamic> toJson() => _$VehicleModelToJson(this);
 
   @override
-  List<Object?> get props => [id, name, make, model, year];
+  List<Object?> get props => [id, name, make, model, year, userId];
 }

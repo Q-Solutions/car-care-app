@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:carlog/core/services/location_service.dart';
 import 'package:carlog/core/services/ocr_service.dart';
 import 'package:carlog/features/logs/data/models/fuel_log_model.dart';
@@ -14,7 +15,7 @@ import 'package:mockito/mockito.dart';
 import 'package:carlog/core/services/receipt_parser_service.dart';
 
 // Generate mocks
-@GenerateMocks([LogRepository, LocationService, OCRService, ReceiptParserService])
+@GenerateMocks([LogRepository, LocationService, OCRService, ReceiptParserService, FirebaseAuth, User])
 import 'quick_log_bloc_test.mocks.dart';
 
 void main() {
@@ -23,17 +24,26 @@ void main() {
   late MockLocationService mockLocationService;
   late MockOCRService mockOCRService;
   late MockReceiptParserService mockReceiptParserService;
+  late MockFirebaseAuth mockFirebaseAuth;
+  late MockUser mockUser;
 
   setUp(() {
     mockLogRepository = MockLogRepository();
     mockLocationService = MockLocationService();
     mockOCRService = MockOCRService();
     mockReceiptParserService = MockReceiptParserService();
+    mockFirebaseAuth = MockFirebaseAuth();
+    mockUser = MockUser();
+
+    when(mockFirebaseAuth.currentUser).thenReturn(mockUser);
+    when(mockUser.uid).thenReturn('test_user_id');
+
     bloc = QuickLogBloc(
       mockOCRService,
       mockLocationService,
       mockLogRepository,
       mockReceiptParserService,
+      mockFirebaseAuth,
     );
   });
 
@@ -54,6 +64,7 @@ void main() {
     cost: 50.0,
     timestamp: DateTime.now(),
     location: mockLocation,
+    userId: 'test_user_id',
   );
 
   group('QuickLogBloc Validation', () {

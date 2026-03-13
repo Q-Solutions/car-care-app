@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bloc/bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/maintenance_log_model.dart';
@@ -6,10 +8,12 @@ import '../../domain/repositories/log_repository.dart';
 import 'expense_log_event.dart';
 import 'expense_log_state.dart';
 
+@injectable
 class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
   final LogRepository _logRepository;
+  final FirebaseAuth _firebaseAuth;
 
-  ExpenseLogBloc(this._logRepository) : super(const ExpenseLogState()) {
+  ExpenseLogBloc(this._logRepository, this._firebaseAuth) : super(const ExpenseLogState()) {
     on<SaveExpenseLog>(_onSaveExpenseLog);
   }
 
@@ -23,6 +27,7 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
         category: event.category,
         cost: event.cost,
         note: event.note,
+        userId: _firebaseAuth.currentUser?.uid ?? '',
         photoPath: event.photoPath,
         odometer: event.odometer,
         vehicleId: event.vehicleId,

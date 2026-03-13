@@ -45,7 +45,27 @@ void main() {
     when(() => mockBloc.close()).thenAnswer((_) async {});
     when(() => mockBloc.add(any())).thenReturn(null);
 
-    final vState = VehicleState(status: VehicleStatus.loaded, vehicles: [VehicleModel(id: '1', name: 'Toyota Camry', make: 'Toyota', model: 'Camry', year: 2020)], selectedVehicle: VehicleModel(id: '1', name: 'Toyota Camry', make: 'Toyota', model: 'Camry', year: 2020));
+    final vState = VehicleState(
+      status: VehicleStatus.loaded,
+      vehicles: [
+        VehicleModel(
+          id: '1',
+          name: 'Toyota Camry',
+          make: 'Toyota',
+          model: 'Camry',
+          year: 2020,
+          userId: 'test_user',
+        )
+      ],
+      selectedVehicle: VehicleModel(
+        id: '1',
+        name: 'Toyota Camry',
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        userId: 'test_user',
+      ),
+    );
     when(() => mockVehicleBloc.state).thenReturn(vState);
     when(() => mockVehicleBloc.stream).thenAnswer((_) => Stream.value(vState));
     when(() => mockVehicleBloc.close()).thenAnswer((_) async {});

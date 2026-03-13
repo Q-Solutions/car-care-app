@@ -26,10 +26,13 @@ class MaintenanceLogModel {
   @HiveField(5)
   final String? photoPath;
 
-  @HiveField(6)
+  @HiveField(7)
   final int? odometer;
 
-  @HiveField(7)
+  @HiveField(8)
+  final String userId;
+
+  @HiveField(9)
   final String? vehicleId;
 
   MaintenanceLogModel({
@@ -38,6 +41,7 @@ class MaintenanceLogModel {
     required this.category,
     required this.cost,
     required this.note,
+    required this.userId,
     this.photoPath,
     this.odometer,
     this.vehicleId,

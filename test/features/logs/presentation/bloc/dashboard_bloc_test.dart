@@ -36,6 +36,7 @@ void main() {
         longitude: 10.0,
         timestamp: DateTime(2026, 3, 1),
       ),
+      userId: 'test_user',
     ),
   ];
 
@@ -47,6 +48,7 @@ void main() {
       category: 'Service',
       cost: 50.0,
       note: "",
+      userId: 'test_user',
     ),
   ];
 

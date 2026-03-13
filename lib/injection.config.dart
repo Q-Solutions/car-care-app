@@ -28,6 +28,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart' as _i363;
 import 'features/logs/data/repositories/log_repository_impl.dart' as _i425;
 import 'features/logs/domain/repositories/log_repository.dart' as _i349;
 import 'features/logs/presentation/bloc/dashboard_bloc.dart' as _i958;
+import 'features/logs/presentation/bloc/expense_log_bloc.dart' as _i697;
 import 'features/logs/presentation/bloc/quick_log_bloc.dart' as _i795;
 import 'features/reports/presentation/bloc/reports_bloc.dart' as _i866;
 import 'features/vehicles/data/repositories/vehicle_repository_impl.dart'
@@ -98,23 +99,26 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i116.GoogleSignIn>(),
       ),
     );
+    gh.lazySingleton<_i349.LogRepository>(
+      () => _i425.LogRepositoryImpl(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+    );
+    gh.factory<_i697.ExpenseLogBloc>(
+      () => _i697.ExpenseLogBloc(
+        gh<_i349.LogRepository>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
+    );
     gh.singleton<_i661.AnalyticsService>(
       () => _i661.AnalyticsService(
         gh<_i398.FirebaseAnalytics>(),
         gh<_i346.FirebasePerformance>(),
       ),
     );
-    gh.lazySingleton<_i349.LogRepository>(
-      () => _i425.LogRepositoryImpl(gh<_i974.FirebaseFirestore>()),
-    );
     gh.factory<_i363.AuthBloc>(
       () => _i363.AuthBloc(gh<_i1015.AuthRepository>()),
-    );
-    gh.factory<_i958.DashboardBloc>(
-      () => _i958.DashboardBloc(gh<_i349.LogRepository>()),
-    );
-    gh.factory<_i866.ReportsBloc>(
-      () => _i866.ReportsBloc(gh<_i349.LogRepository>()),
     );
     gh.factory<_i795.QuickLogBloc>(
       () => _i795.QuickLogBloc(
@@ -122,10 +126,20 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i65.LocationService>(),
         gh<_i349.LogRepository>(),
         gh<_i729.ReceiptParserService>(),
+        gh<_i59.FirebaseAuth>(),
       ),
     );
+    gh.factory<_i958.DashboardBloc>(
+      () => _i958.DashboardBloc(gh<_i349.LogRepository>()),
+    );
+    gh.factory<_i866.ReportsBloc>(
+      () => _i866.ReportsBloc(gh<_i349.LogRepository>()),
+    );
     gh.lazySingleton<_i737.VehicleRepository>(
-      () => _i186.VehicleRepositoryImpl(gh<_i974.FirebaseFirestore>()),
+      () => _i186.VehicleRepositoryImpl(
+        gh<_i974.FirebaseFirestore>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
     );
     gh.factory<_i114.VehicleBloc>(
       () => _i114.VehicleBloc(gh<_i737.VehicleRepository>()),

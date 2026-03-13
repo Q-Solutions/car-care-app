@@ -4,18 +4,29 @@ import 'package:carlog/features/logs/domain/repositories/log_repository.dart';
 import 'package:carlog/features/logs/presentation/bloc/expense_log_bloc.dart';
 import 'package:carlog/features/logs/presentation/bloc/expense_log_event.dart';
 import 'package:carlog/features/logs/presentation/bloc/expense_log_state.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockLogRepository extends Mock implements LogRepository {}
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+class MockUser extends Mock implements User {}
 
 void main() {
   late ExpenseLogBloc expenseLogBloc;
   late MockLogRepository mockLogRepository;
+  late MockFirebaseAuth mockFirebaseAuth;
+  late MockUser mockUser;
 
   setUp(() {
     mockLogRepository = MockLogRepository();
-    expenseLogBloc = ExpenseLogBloc(mockLogRepository);
+    mockFirebaseAuth = MockFirebaseAuth();
+    mockUser = MockUser();
+    
+    when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+    when(() => mockUser.uid).thenReturn('test_user_id');
+
+    expenseLogBloc = ExpenseLogBloc(mockLogRepository, mockFirebaseAuth);
     
     registerFallbackValue(FakeMaintenanceLogModel());
   });

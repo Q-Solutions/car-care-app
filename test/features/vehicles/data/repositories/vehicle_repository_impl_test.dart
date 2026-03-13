@@ -3,12 +3,19 @@ import 'package:carlog/features/vehicles/data/models/vehicle_model.dart';
 import 'package:carlog/features/vehicles/data/repositories/vehicle_repository_impl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+class MockUser extends Mock implements User {}
 
 void main() {
   late VehicleRepositoryImpl repository;
   late FakeFirebaseFirestore fakeFirestore;
+  late MockFirebaseAuth mockFirebaseAuth;
+  late MockUser mockUser;
   late Directory tempDir;
 
   setUpAll(() async {
@@ -26,7 +33,13 @@ void main() {
 
   setUp(() async {
     fakeFirestore = FakeFirebaseFirestore();
-    repository = VehicleRepositoryImpl(fakeFirestore);
+    mockFirebaseAuth = MockFirebaseAuth();
+    mockUser = MockUser();
+    
+    when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+    when(() => mockUser.uid).thenReturn('test_user_id');
+
+    repository = VehicleRepositoryImpl(fakeFirestore, mockFirebaseAuth);
     if (!Hive.isBoxOpen('vehicles')) {
       await Hive.openBox<VehicleModel>('vehicles');
     }
@@ -39,6 +52,7 @@ void main() {
     make: 'Toyota',
     model: 'Corolla',
     year: 2020,
+    userId: 'test_user_id',
   );
 
   group('VehicleRepositoryImpl', () {
@@ -65,6 +79,7 @@ void main() {
         make: 'Toyota',
         model: 'Corolla',
         year: 2021,
+        userId: 'test_user_id',
       );
 
       await repository.updateVehicle(updatedVehicle);

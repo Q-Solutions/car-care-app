@@ -5,12 +5,19 @@ import 'package:carlog/features/logs/data/models/location_model.dart';
 import 'package:carlog/features/logs/data/repositories/log_repository_impl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+class MockUser extends Mock implements User {}
 
 void main() {
   late LogRepositoryImpl repository;
   late FakeFirebaseFirestore fakeFirestore;
+  late MockFirebaseAuth mockFirebaseAuth;
+  late MockUser mockUser;
   late Directory tempDir;
 
   setUpAll(() async {
@@ -31,7 +38,13 @@ void main() {
 
   setUp(() async {
     fakeFirestore = FakeFirebaseFirestore();
-    repository = LogRepositoryImpl(fakeFirestore);
+    mockFirebaseAuth = MockFirebaseAuth();
+    mockUser = MockUser();
+
+    when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+    when(() => mockUser.uid).thenReturn('test_user_id');
+
+    repository = LogRepositoryImpl(fakeFirestore, mockFirebaseAuth);
     if (!Hive.isBoxOpen('fuel_logs')) {
       await Hive.openBox<FuelLogModel>('fuel_logs');
     }
@@ -46,6 +59,7 @@ void main() {
       cost: 100.0,
       timestamp: DateTime.now(),
       location: LocationModel(latitude: 0, longitude: 0, timestamp: DateTime.now()),
+      userId: 'test_user_id',
     );
 
     // This simulates calling the repository method.
@@ -73,6 +87,7 @@ void main() {
       cost: 100.0,
       timestamp: DateTime.now(),
       location: LocationModel(latitude: 0, longitude: 0, timestamp: DateTime.now()),
+      userId: 'test_user_id',
     );
     final box = Hive.box<FuelLogModel>('fuel_logs');
     await box.put(log.id, log);
@@ -95,6 +110,7 @@ void main() {
       'liters': 60.0,
       'cost': 120.0,
       'timestamp': Timestamp.now(),
+      'userId': 'test_user_id',
       'location': {
         'latitude': 0.0,
         'longitude': 0.0,

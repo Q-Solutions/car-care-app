@@ -25,6 +25,7 @@ void main() {
       cost: cost,
       timestamp: timestamp,
       location: mockLocation,
+      userId: 'test_user',
     );
   }
 

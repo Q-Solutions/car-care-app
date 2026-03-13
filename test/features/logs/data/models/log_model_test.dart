@@ -20,6 +20,7 @@ void main() {
         cost: 100.0,
         timestamp: timestamp,
         location: location,
+        userId: 'test_user',
       );
 
       final json = model.toJson();
@@ -46,6 +47,7 @@ void main() {
         cost: 200.0,
         note: 'Oil change',
         photoPath: '/path/to/photo.jpg',
+        userId: 'test_user',
       );
 
       final json = model.toJson();

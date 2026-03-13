@@ -22,16 +22,17 @@ class MaintenanceLogModelAdapter extends TypeAdapter<MaintenanceLogModel> {
       category: fields[2] as String,
       cost: (fields[3] as num).toDouble(),
       note: fields[4] as String,
+      userId: fields[8] as String,
       photoPath: fields[5] as String?,
-      odometer: (fields[6] as num?)?.toInt(),
-      vehicleId: fields[7] as String?,
+      odometer: (fields[7] as num?)?.toInt(),
+      vehicleId: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MaintenanceLogModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,9 +45,11 @@ class MaintenanceLogModelAdapter extends TypeAdapter<MaintenanceLogModel> {
       ..write(obj.note)
       ..writeByte(5)
       ..write(obj.photoPath)
-      ..writeByte(6)
-      ..write(obj.odometer)
       ..writeByte(7)
+      ..write(obj.odometer)
+      ..writeByte(8)
+      ..write(obj.userId)
+      ..writeByte(9)
       ..write(obj.vehicleId);
   }
 
@@ -72,6 +75,7 @@ MaintenanceLogModel _$MaintenanceLogModelFromJson(Map<String, dynamic> json) =>
       category: json['category'] as String,
       cost: (json['cost'] as num).toDouble(),
       note: json['note'] as String,
+      userId: json['userId'] as String,
       photoPath: json['photoPath'] as String?,
       odometer: (json['odometer'] as num?)?.toInt(),
       vehicleId: json['vehicleId'] as String?,
@@ -87,5 +91,6 @@ Map<String, dynamic> _$MaintenanceLogModelToJson(
   'note': instance.note,
   'photoPath': instance.photoPath,
   'odometer': instance.odometer,
+  'userId': instance.userId,
   'vehicleId': instance.vehicleId,
 };

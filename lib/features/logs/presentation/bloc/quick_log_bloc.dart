@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:camera/camera.dart';
@@ -23,12 +24,14 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
   final LocationService _locationService;
   final LogRepository _logRepository;
   final ReceiptParserService _receiptParserService;
+  final FirebaseAuth _firebaseAuth;
 
   QuickLogBloc(
     this._ocrService,
     this._locationService,
     this._logRepository,
     this._receiptParserService,
+    this._firebaseAuth,
   ) : super(const QuickLogState()) {
     on<StartCamera>(_onStartCamera);
     on<CaptureImage>(_onCaptureImage);
@@ -295,6 +298,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
         cost: event.cost,
         timestamp: DateTime.now(),
         location: location,
+        userId: _firebaseAuth.currentUser?.uid ?? '',
         vehicleId: event.vehicleId,
         stationName: event.stationName,
         odometerPhotoPath: event.odometerPhotoPath,
