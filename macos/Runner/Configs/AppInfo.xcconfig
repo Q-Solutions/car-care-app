@@ -8,7 +8,7 @@
 PRODUCT_NAME = car_care_app
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.carCareApp
+PRODUCT_BUNDLE_IDENTIFIER = com.qsolutions.car_care_app
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example.carcareapp All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.qsolutions.car_care_app All rights reserved.
