@@ -30,6 +30,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   String? _imagePath;
   String? _odometerImagePath;
   bool _isLoading = false;
+  bool _isSold = false;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
       _modelController.text = widget.vehicle!.model;
       _yearController.text = widget.vehicle!.year.toString();
       _imagePath = widget.vehicle!.imagePath;
+      _isSold = widget.vehicle!.isSold;
     }
   }
 
@@ -67,6 +69,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         year: int.parse(_yearController.text.trim()),
         userId: widget.vehicle?.userId ?? FirebaseAuth.instance.currentUser?.uid ?? '',
         imagePath: _imagePath,
+        isSold: _isSold,
       );
 
       try {
@@ -314,7 +317,16 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 32),
+              _buildSection(
+              title: 'Status',
+              child: SwitchListTile(
+                title: const Text('Mark as Sold'),
+                subtitle: const Text('This will disable adding new entries for this vehicle'),
+                value: _isSold,
+                onChanged: (value) => setState(() => _isSold = value),
+              ),
+            ),
+            const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveVehicle,
                 style: ElevatedButton.styleFrom(
@@ -330,6 +342,23 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           ),
         ),
       ),
+    );
+  }
+  Widget _buildSection({required String title, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
     );
   }
 }

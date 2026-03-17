@@ -1,4 +1,5 @@
 import 'package:injectable/injectable.dart';
+import 'ai_service.dart';
 
 /// Represents the type of receipt detected
 enum ReceiptType { fuel, pos, mechanic, unknown }
@@ -71,6 +72,10 @@ class ParsedMechanicBill {
 
 @lazySingleton
 class ReceiptParserService {
+  final AIService _aiService;
+
+  ReceiptParserService(this._aiService);
+
   /// Known fuel station brand keywords
   static const _fuelBrands = [
     'shell', 'hp', 'bharat', 'indian oil', 'iocl', 'bpcl', 'hpcl',
@@ -138,7 +143,19 @@ class ReceiptParserService {
   }
 
   /// Parse a fuel/petrol receipt
-  ParsedFuelReceipt parseFuelReceipt(String text) {
+  Future<ParsedFuelReceipt> parseFuelReceipt(String text) async {
+    // Try AI first
+    final aiData = await _aiService.analyzeReceiptText(text, 'fuel');
+    if (aiData != null) {
+      return ParsedFuelReceipt(
+        stationName: aiData['stationName'],
+        totalAmount: aiData['totalAmount']?.toDouble(),
+        liters: aiData['liters']?.toDouble(),
+        pricePerLiter: aiData['pricePerLiter']?.toDouble(),
+        location: aiData['location'],
+      );
+    }
+
     final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
     final lower = text.toLowerCase();
 
@@ -168,18 +185,23 @@ class ReceiptParserService {
       }
     }
 
-    // Extract amounts using contextual keywords
+    // Extract amounts using contextual keywords - more robust patterns
     final amountPatterns = [
-      RegExp(r'(?:total|amount|amt|net|sale)\s*[:\-=]?\s*(?:rs\.?|₹|inr)?\s*([\d,]+\.?\d*)', caseSensitive: false),
-      RegExp(r'(?:rs\.?|₹|inr)\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'(?:total|amount|amt|net|sale|paid|payment)\s*[:\-=]?\s*(?:rs\.?|₹|inr|pkr)?\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'(?:rs\.?|₹|inr|pkr)\s*([\d,]+\.?\d*)', caseSensitive: false),
+      // Pattern for large numbers at the bottom of receipt
+      RegExp(r'total\s+([\d,]+\.?\d+)', caseSensitive: false),
     ];
 
     for (var pattern in amountPatterns) {
-      final match = pattern.firstMatch(lower);
-      if (match != null) {
-        final val = double.tryParse(match.group(1)!.replaceAll(',', ''));
-        if (val != null && totalAmount == null) {
-          totalAmount = val;
+      final matches = pattern.allMatches(lower);
+      for (final match in matches) {
+        final valStr = match.group(1)!.replaceAll(',', '');
+        final val = double.tryParse(valStr);
+        if (val != null && val > 100) { // Likely an amount
+          if (totalAmount == null || val > totalAmount) {
+             totalAmount = val;
+          }
         }
       }
     }
@@ -187,15 +209,18 @@ class ReceiptParserService {
     // Extract liters
     final literPatterns = [
       RegExp(r'([\d,]+\.?\d*)\s*(?:ltr|liter|litre|l)\b', caseSensitive: false),
-      RegExp(r'(?:qty|quantity|volume)\s*[:\-=]?\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'(?:qty|quantity|volume|vol)\s*[:\-=]?\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'lit(?:ers|res)?\s*[:\-=]?\s*([\d,]+\.?\d*)', caseSensitive: false),
     ];
 
     for (var pattern in literPatterns) {
-      final match = pattern.firstMatch(lower);
-      if (match != null) {
+      final matches = pattern.allMatches(lower);
+      for (final match in matches) {
         final val = double.tryParse(match.group(1)!.replaceAll(',', ''));
-        if (val != null && liters == null) {
-          liters = val;
+        if (val != null && val > 0 && val < 500) { // Sanity check for liters
+          if (liters == null) {
+            liters = val;
+          }
         }
       }
     }
@@ -254,7 +279,18 @@ class ReceiptParserService {
   }
 
   /// Parse a POS/store receipt
-  List<POSItem> parsePOSReceipt(String text) {
+  Future<List<POSItem>> parsePOSReceipt(String text) async {
+    // Try AI first
+    final aiData = await _aiService.analyzeReceiptText(text, 'store');
+    if (aiData != null && aiData['items'] != null) {
+      final List<dynamic> itemsData = aiData['items'];
+      return itemsData.map((item) => POSItem(
+        name: item['name'] ?? 'Unknown',
+        quantity: item['quantity']?.toInt() ?? 1,
+        price: item['price']?.toDouble() ?? 0.0,
+      )).toList();
+    }
+
     final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
     final items = <POSItem>[];
 
@@ -311,7 +347,17 @@ class ReceiptParserService {
   }
 
   /// Parse a mechanic/repair bill
-  List<ServiceItem> parseMechanicBill(String text) {
+  Future<List<ServiceItem>> parseMechanicBill(String text) async {
+    // Try AI first
+    final aiData = await _aiService.analyzeReceiptText(text, 'mechanic');
+    if (aiData != null && aiData['services'] != null) {
+      final List<dynamic> servicesData = aiData['services'];
+      return servicesData.map((service) => ServiceItem(
+        description: service['description'] ?? 'Unknown',
+        cost: service['cost']?.toDouble() ?? 0.0,
+      )).toList();
+    }
+
     final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
     final services = <ServiceItem>[];
 

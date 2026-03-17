@@ -105,7 +105,7 @@ class _QuickLogPageState extends State<QuickLogPage> with SingleTickerProviderSt
                             border: Border.all(color: Colors.white.withOpacity(0.1)),
                           ),
                           child: Text(
-                            'MAGIC SCAN',
+                            'REFUEL',
                             style: GoogleFonts.inter(
                               color: Colors.white.withOpacity(0.9),
                               fontSize: 12,

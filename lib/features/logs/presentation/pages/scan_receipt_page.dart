@@ -11,6 +11,7 @@ import '../../../../core/services/ocr_service.dart';
 import '../../../../core/services/receipt_parser_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection.dart';
+import '../../../../core/services/settings_service.dart';
 import '../../../vehicles/presentation/bloc/vehicle_bloc.dart';
 import '../../data/models/maintenance_log_model.dart';
 import '../../domain/repositories/log_repository.dart';
@@ -46,7 +47,7 @@ class _ScanReceiptPageState extends State<ScanReceiptPage> {
       final recognizedText = await _ocrService.processImage(inputImage);
       final text = recognizedText.text;
 
-      final items = _parserService.parsePOSReceipt(text);
+      final items = await _parserService.parsePOSReceipt(text);
       final storeName = _parserService.extractBusinessName(text);
 
       setState(() {
@@ -77,7 +78,7 @@ class _ScanReceiptPageState extends State<ScanReceiptPage> {
       final recognizedText = await _ocrService.processImage(inputImage);
       final text = recognizedText.text;
 
-      final items = _parserService.parsePOSReceipt(text);
+      final items = await _parserService.parsePOSReceipt(text);
       final storeName = _parserService.extractBusinessName(text);
 
       setState(() {
@@ -296,7 +297,7 @@ class _ScanReceiptPageState extends State<ScanReceiptPage> {
                 style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
               secondary: Text(
-                '₹${(item.price * item.quantity).toStringAsFixed(2)}',
+                '${getIt<SettingsService>().currency}${(item.price * item.quantity).toStringAsFixed(2)}',
                 style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),

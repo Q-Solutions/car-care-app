@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:injectable/injectable.dart';
 
+import '../../data/models/fuel_log_model.dart';
 import '../../data/models/maintenance_log_model.dart';
 import '../../domain/repositories/log_repository.dart';
 import 'expense_log_event.dart';
@@ -21,22 +22,45 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
 
   Future<void> _onSaveExpenseLog(SaveExpenseLog event, Emitter<ExpenseLogState> emit) async {
     emit(state.copyWith(status: ExpenseLogStatus.saving));
-    debugPrint("ExpenseLogBloc: Saving expense log...");
-
-    final log = MaintenanceLogModel(
-      id: const Uuid().v4(),
-      date: event.date,
-      category: event.category,
-      cost: event.cost,
-      note: event.note,
-      userId: _firebaseAuth.currentUser?.uid ?? '',
-      photoPath: event.photoPath,
-      odometer: event.odometer,
-      vehicleId: event.vehicleId,
-    );
+    debugPrint("ExpenseLogBloc: Saving expense log (Category: ${event.category})...");
 
     try {
-      await _logRepository.addMaintenanceLog(log);
+      final isFuel = event.category.toLowerCase() == 'fuel' || 
+                    event.category.toLowerCase() == 'petrol';
+
+      final userId = _firebaseAuth.currentUser?.uid ?? '';
+
+      if (isFuel && event.odometer != null) {
+        // Save as FuelLogModel
+        final fuelLog = FuelLogModel(
+          id: const Uuid().v4(),
+          odometer: event.odometer!,
+          liters: event.liters ?? 0.0,
+          cost: event.cost,
+          timestamp: event.date,
+          location: null,
+          userId: userId,
+          vehicleId: event.vehicleId ?? '',
+          stationName: event.note.startsWith('From ') ? event.note.replaceFirst('From ', '') : null,
+          odometerPhotoPath: event.photoPath,
+        );
+        await _logRepository.addFuelLog(fuelLog);
+      } else {
+        // Save as MaintenanceLogModel
+        final log = MaintenanceLogModel(
+          id: const Uuid().v4(),
+          date: event.date,
+          category: event.category,
+          cost: event.cost,
+          note: event.note,
+          userId: userId,
+          photoPath: event.photoPath,
+          odometer: event.odometer,
+          vehicleId: event.vehicleId,
+        );
+        await _logRepository.addMaintenanceLog(log);
+      }
+      
       debugPrint("ExpenseLogBloc: Save successful");
       emit(state.copyWith(status: ExpenseLogStatus.saved));
     } catch (e) {

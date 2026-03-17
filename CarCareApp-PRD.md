@@ -1,36 +1,43 @@
-## **🏗️ Refined PRD for Jules: CarCareApp (Phase 1\)**
+## **🏗️ Refined PRD for CarCareApp (Phase 1 Completion)**
 
-### **1\. Objective**
+### **1. Objective**
 
-Build a "Zero-to-One" market validation tool for vehicle expense tracking using **Flutter** and **Firebase**. The app must be **Offline-First**, allowing users to log data without a connection, which then syncs once they are back online.
+Build a "Zero-to-One" market validation tool for vehicle expense tracking using **Flutter** and **Firebase**. The app is **Offline-First**, allowing users to log data without a connection, which then syncs once they are back online. Completion of Phase 1 includes advanced AI-powered data entry to minimize user friction.
 
-### **2\. Core Tech Stack**
+### **2. Core Tech Stack**
 
-* **Frontend:** Flutter (Mobile).  
-* **Backend/Database:** Firebase Firestore (with **Persistence enabled** for offline support).  
-* **Authentication:** Firebase Auth (Anonymous or Google Sign-in).  
-* **OCR Engine:** `google_ml_kit` for on-device text recognition (to keep it fast and offline-capable).  
-* **Location:** `geolocator` package for passive GPS tagging.
+* **Frontend:** Flutter (Mobile).
+* **Backend/Database:** Firebase Firestore (with **Persistence enabled**).
+* **Authentication:** Firebase Auth (Email/Password + Google Sign-in).
+* **AI Engine:** Google Gemini 1.5 Flash (via `google_generative_ai`) for intelligent document parsing.
+* **OCR Engine:** `google_ml_kit` for text recognition.
+* **Location:** `geolocator` for passive GPS tagging.
 
-### **3\. Feature Specifications**
+### **3. Feature Specifications (Phase 1 Result)**
 
-#### **Feature 1: The "Magic" Fuel & Odometer Log**
+#### **Feature 1: AI-Powered "Refuel" Log (formerly Magic Scan)**
+* **Status:** [COMPLETED]
+* **Action:** FAB opens camera to scan fuel receipts or odometer.
+* **AI Logic (Gemini):** Automatically extracts:
+  * **Station Name**, **Total Cost**, **Liters**, and **Price per Liter**.
+  * **Odometer** reading from dashboard photos.
+* **Manual Fallback:** Smart form for Odometer, Liters, and Total Cost.
+* **Integration:** "Petrol" expenses from any form now sync directly to refuel history.
 
-* **Action:** A floating action button (FAB) opens a camera view.  
-* **OCR Logic:** Automatically scan for numbers representing:  
-  * **Odometer** (from the dashboard).  
-  * **Total Cost / Volume** (from a petrol receipt).  
-* **Manual Fallback:** If OCR fails or payment is **Cash**, a 3-field form appears: Odometer, Liters, and Total Cost.  
-* **GPS Tagging:** Every log entry must include `latitude` and `longitude` captured at the time of the save.  
-* **Offline Support:** Logs must save to a local Hive/SQFlite database or Firestore local cache immediately.
+#### **Feature 2: Smart Expense & Repair Log**
+* **Status:** [COMPLETED]
+* **Categories:** Repair, Maintenance, Insurance, Store, etc.
+* **AI Parsing:**
+  * **Store Receipts:** itemized list extraction (Name, Qty, Price).
+  * **Mechanic Bills:** Service description and cost extraction.
+* **Vehicle Guards:** Entries are blocked for vehicles marked as **"Sold"**.
 
-#### **Feature 2: Expense & Repair Log**
+#### **Feature 3: Globalization & UX**
+* **Status:** [COMPLETED]
+* **Real-time Sync:** Settings for **Currency** and **Date Format** reflect instantly across the entire UI.
+* **Category Management:** Dynamic addition and auto-selection of user-defined categories.
 
-* **Categories:** Repair, Maintenance, Insurance, Misc.  
-* **Inputs:** Date, Category, Cost, Note, and Camera (to attach a photo of the bill).
-
-#### **Feature 3: Viral Share Card (The "Shock/Pride" Metric)**
-
-* **Calculation:** Total Cost / Total Kilometers \= **Cost per KM**.  
-* **Output:** Generate a high-contrast image card (e.g., *"My car costs Rs. 18/km"*) using the `screenshot` or `render_repaint_boundary` package.  
-* **Sharing:** Trigger the native OS share sheet.
+#### **Feature 4: Viral Share Card**
+* **Status:** [COMPLETED]
+* **Calculation:** Total Cost / Total Kilometers = **Cost per KM**.
+* **Sharing:** OS share sheet for the "Shock/Pride" metric card.

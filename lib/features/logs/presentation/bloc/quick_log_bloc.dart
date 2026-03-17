@@ -160,7 +160,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
 
       if (receiptType == ReceiptType.fuel) {
         // Parse fuel receipt
-        final parsed = _receiptParserService.parseFuelReceipt(text);
+        final parsed = await _receiptParserService.parseFuelReceipt(text);
         emit(state.copyWith(
           status: QuickLogStatus.review,
           receiptType: receiptType,
@@ -170,7 +170,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
         ));
       } else if (receiptType == ReceiptType.pos) {
         // Parse POS receipt
-        final items = _receiptParserService.parsePOSReceipt(text);
+        final items = await _receiptParserService.parsePOSReceipt(text);
         final storeName = _receiptParserService.extractBusinessName(text);
         emit(state.copyWith(
           status: QuickLogStatus.review,
@@ -180,7 +180,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
         ));
       } else if (receiptType == ReceiptType.mechanic) {
         // Parse mechanic bill
-        final services = _receiptParserService.parseMechanicBill(text);
+        final services = await _receiptParserService.parseMechanicBill(text);
         final mechanicName = _receiptParserService.extractBusinessName(text);
         emit(state.copyWith(
           status: QuickLogStatus.review,
@@ -190,7 +190,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
         ));
       } else {
         // Unknown receipt — try fuel parsing as fallback (original behavior)
-        final parsed = _receiptParserService.parseFuelReceipt(text);
+        final parsed = await _receiptParserService.parseFuelReceipt(text);
         emit(state.copyWith(
           status: QuickLogStatus.review,
           receiptType: ReceiptType.unknown,
@@ -285,11 +285,13 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
       // Get location
       final position = await _locationService.getCurrentLocation();
 
-      final location = LocationModel(
-        latitude: position?.latitude ?? 0.0,
-        longitude: position?.longitude ?? 0.0,
-        timestamp: DateTime.now(),
-      );
+      final location = position != null
+          ? LocationModel(
+              latitude: position.latitude,
+              longitude: position.longitude,
+              timestamp: DateTime.now(),
+            )
+          : null;
 
       final log = FuelLogModel(
         id: const Uuid().v4(),

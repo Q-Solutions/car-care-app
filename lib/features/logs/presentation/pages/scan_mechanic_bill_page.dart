@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/services/ocr_service.dart';
 import '../../../../core/services/receipt_parser_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/settings_service.dart';
 import '../../../../injection.dart';
 import '../../../vehicles/presentation/bloc/vehicle_bloc.dart';
 import '../../data/models/maintenance_log_model.dart';
@@ -66,7 +67,7 @@ class _ScanMechanicBillPageState extends State<ScanMechanicBillPage> {
       final recognizedText = await _ocrService.processImage(inputImage);
       final text = recognizedText.text;
 
-      final services = _parserService.parseMechanicBill(text);
+      final services = await _parserService.parseMechanicBill(text);
       final mechanicName = _parserService.extractBusinessName(text);
 
       // Dispose old controllers
@@ -323,7 +324,7 @@ class _ScanMechanicBillPageState extends State<ScanMechanicBillPage> {
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
                         isDense: true,
-                        prefixText: '₹',
+                        prefixText: getIt<SettingsService>().currency,
                         prefixStyle: TextStyle(color: Colors.grey[400]),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[700]!)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[700]!)),

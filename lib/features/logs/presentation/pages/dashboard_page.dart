@@ -213,7 +213,7 @@ class _DashboardViewState extends State<DashboardView> {
                         decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.1), shape: BoxShape.circle),
                         child: const Icon(Icons.document_scanner, color: AppTheme.primary),
                       ),
-                      title: const Text('Magic Scan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      title: const Text('Refuel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       subtitle: const Text('Auto-extract data from receipts', style: TextStyle(color: Colors.grey)),
                       onTap: () {
                         Navigator.pop(context);
@@ -498,71 +498,91 @@ class _DashboardViewState extends State<DashboardView> {
               return AnimatedScale(
                 scale: isSelected ? 1.0 : 0.9,
                 duration: const Duration(milliseconds: 200),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary.withOpacity(0.1) : AppTheme.cardDark,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? AppTheme.primary : Colors.grey[800]!,
-                      width: 2,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      Hero(
-                        tag: 'vehicle_${vehicle.id}',
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[900],
-                            shape: BoxShape.circle,
-                            image: vehicle.imagePath != null
-                                ? DecorationImage(
-                                    image: FileImage(File(vehicle.imagePath!)),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
+                child: Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.primary.withOpacity(0.1) : AppTheme.cardDark,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? AppTheme.primary : Colors.grey[800]!,
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16),
+                          Hero(
+                            tag: 'vehicle_${vehicle.id}',
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[900],
+                                shape: BoxShape.circle,
+                                image: vehicle.imagePath != null
+                                    ? DecorationImage(
+                                        image: FileImage(File(vehicle.imagePath!)),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: vehicle.imagePath == null
+                                  ? const Icon(Icons.directions_car, color: Colors.white, size: 30)
+                                  : null,
+                            ),
                           ),
-                          child: vehicle.imagePath == null
-                              ? const Icon(Icons.directions_car, color: Colors.white, size: 30)
-                              : null,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  vehicle.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${vehicle.make} ${vehicle.model}',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, color: Colors.grey),
+                          const SizedBox(width: 16),
+                        ],
+                      ),
+                    ),
+                    if (vehicle.isSold)
+                      Positioned(
+                        top: 5,
+                        right: 15,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'SOLD',
+                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              vehicle.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '${vehicle.make} ${vehicle.model}',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                      const SizedBox(width: 16),
-                    ],
-                  ),
+                  ],
                 ),
               );
             },

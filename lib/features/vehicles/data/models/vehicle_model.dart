@@ -28,6 +28,10 @@ class VehicleModel extends Equatable {
   @HiveField(6)
   final String? imagePath;
 
+  @HiveField(7)
+  @JsonKey(defaultValue: false)
+  final bool isSold;
+
   VehicleModel({
     required this.id,
     required this.name,
@@ -36,6 +40,7 @@ class VehicleModel extends Equatable {
     required this.year,
     required this.userId,
     this.imagePath,
+    this.isSold = false,
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) =>
@@ -44,5 +49,5 @@ class VehicleModel extends Equatable {
   Map<String, dynamic> toJson() => _$VehicleModelToJson(this);
 
   @override
-  List<Object?> get props => [id, name, make, model, year, userId, imagePath];
+  List<Object?> get props => [id, name, make, model, year, userId, imagePath, isSold];
 }

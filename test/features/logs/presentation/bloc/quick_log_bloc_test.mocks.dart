@@ -230,31 +230,35 @@ class MockReceiptParserService extends _i1.Mock
           as _i3.ReceiptType);
 
   @override
-  _i3.ParsedFuelReceipt parseFuelReceipt(String? text) =>
+  _i8.Future<_i3.ParsedFuelReceipt> parseFuelReceipt(String? text) =>
       (super.noSuchMethod(
             Invocation.method(#parseFuelReceipt, [text]),
-            returnValue: _FakeParsedFuelReceipt_1(
-              this,
-              Invocation.method(#parseFuelReceipt, [text]),
+            returnValue: _i8.Future<_i3.ParsedFuelReceipt>.value(
+              _FakeParsedFuelReceipt_1(
+                this,
+                Invocation.method(#parseFuelReceipt, [text]),
+              ),
             ),
           )
-          as _i3.ParsedFuelReceipt);
+          as _i8.Future<_i3.ParsedFuelReceipt>);
 
   @override
-  List<_i3.POSItem> parsePOSReceipt(String? text) =>
+  _i8.Future<List<_i3.POSItem>> parsePOSReceipt(String? text) =>
       (super.noSuchMethod(
             Invocation.method(#parsePOSReceipt, [text]),
-            returnValue: <_i3.POSItem>[],
+            returnValue: _i8.Future<List<_i3.POSItem>>.value(<_i3.POSItem>[]),
           )
-          as List<_i3.POSItem>);
+          as _i8.Future<List<_i3.POSItem>>);
 
   @override
-  List<_i3.ServiceItem> parseMechanicBill(String? text) =>
+  _i8.Future<List<_i3.ServiceItem>> parseMechanicBill(String? text) =>
       (super.noSuchMethod(
             Invocation.method(#parseMechanicBill, [text]),
-            returnValue: <_i3.ServiceItem>[],
+            returnValue: _i8.Future<List<_i3.ServiceItem>>.value(
+              <_i3.ServiceItem>[],
+            ),
           )
-          as List<_i3.ServiceItem>);
+          as _i8.Future<List<_i3.ServiceItem>>);
 
   @override
   String? extractBusinessName(String? text) =>

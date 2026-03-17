@@ -26,7 +26,7 @@ class FuelLogModel {
   final DateTime timestamp;
 
   @HiveField(5)
-  final LocationModel location;
+  final LocationModel? location;
 
   @HiveField(6)
   final String? vehicleId;
@@ -46,8 +46,8 @@ class FuelLogModel {
     required this.liters,
     required this.cost,
     required this.timestamp,
-    required this.location,
     required this.userId,
+    this.location,
     this.vehicleId,
     this.stationName,
     this.odometerPhotoPath,

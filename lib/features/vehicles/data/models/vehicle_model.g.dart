@@ -24,13 +24,14 @@ class VehicleModelAdapter extends TypeAdapter<VehicleModel> {
       year: (fields[4] as num).toInt(),
       userId: fields[5] as String,
       imagePath: fields[6] as String?,
+      isSold: fields[7] == null ? false : fields[7] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, VehicleModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class VehicleModelAdapter extends TypeAdapter<VehicleModel> {
       ..writeByte(5)
       ..write(obj.userId)
       ..writeByte(6)
-      ..write(obj.imagePath);
+      ..write(obj.imagePath)
+      ..writeByte(7)
+      ..write(obj.isSold);
   }
 
   @override
@@ -70,6 +73,7 @@ VehicleModel _$VehicleModelFromJson(Map<String, dynamic> json) => VehicleModel(
   year: (json['year'] as num).toInt(),
   userId: json['userId'] as String,
   imagePath: json['imagePath'] as String?,
+  isSold: json['isSold'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$VehicleModelToJson(VehicleModel instance) =>
@@ -81,4 +85,5 @@ Map<String, dynamic> _$VehicleModelToJson(VehicleModel instance) =>
       'year': instance.year,
       'userId': instance.userId,
       'imagePath': instance.imagePath,
+      'isSold': instance.isSold,
     };

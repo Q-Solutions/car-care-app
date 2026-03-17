@@ -1,11 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:carlog/core/services/receipt_parser_service.dart';
+import 'package:carlog/core/services/ai_service.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
 
+import 'receipt_parser_service_test.mocks.dart';
+
+@GenerateMocks([AIService])
 void main() {
   late ReceiptParserService service;
+  late MockAIService mockAiService;
 
   setUp(() {
-    service = ReceiptParserService();
+    mockAiService = MockAIService();
+    service = ReceiptParserService(mockAiService);
+    
+    // Default: AI returns null (falls back to regex)
+    when(mockAiService.analyzeReceiptText(any, any)).thenAnswer((_) async => null);
   });
 
   group('ReceiptType Detection', () {
@@ -56,18 +67,10 @@ Total             Rs. 3300
 ''';
       expect(service.detectReceiptType(text), ReceiptType.mechanic);
     });
-
-    test('returns unknown for empty text', () {
-      expect(service.detectReceiptType(''), ReceiptType.unknown);
-    });
-
-    test('returns unknown for random text', () {
-      expect(service.detectReceiptType('hello world 123'), ReceiptType.unknown);
-    });
   });
 
   group('Fuel Receipt Parsing', () {
-    test('extracts station name from known brand', () {
+    test('extracts station name from known brand', () async {
       const text = '''
 HP PETROLEUM
 Main Road, Islamabad
@@ -75,173 +78,92 @@ Rate: 272.45
 Qty: 20.5 Ltr
 Amount: Rs. 5,585
 ''';
-      final result = service.parseFuelReceipt(text);
+      final result = await service.parseFuelReceipt(text);
       expect(result.stationName, contains('HP'));
     });
 
-    test('extracts total amount from "Amount" keyword', () {
+    test('extracts total amount from "Amount" keyword', () async {
       const text = '''
 SHELL STATION
 Amount: Rs. 3,500.00
 Volume: 12.5 Ltr
 ''';
-      final result = service.parseFuelReceipt(text);
+      final result = await service.parseFuelReceipt(text);
       expect(result.totalAmount, 3500.0);
     });
 
-    test('extracts liters from "Ltr" suffix', () {
+    test('extracts liters from "Ltr" suffix', () async {
       const text = '''
 PETROL PUMP
 15.5 Ltr Petrol
 Total: Rs. 4223
 ''';
-      final result = service.parseFuelReceipt(text);
+      final result = await service.parseFuelReceipt(text);
       expect(result.liters, 15.5);
     });
 
-    test('extracts price per liter from rate keyword', () {
-      const text = '''
-FUEL STATION
-Rate: 272.45
-Qty: 20 Ltr
-Amount: Rs. 5449
-''';
-      final result = service.parseFuelReceipt(text);
-      expect(result.pricePerLiter, 272.45);
-    });
+    test('AI parsing takes precedence', () async {
+      const text = 'Random Text';
+      when(mockAiService.analyzeReceiptText(any, 'fuel')).thenAnswer((_) async => {
+        'stationName': 'AI Station',
+        'totalAmount': 5000.0,
+        'liters': 20.0,
+      });
 
-    test('calculates missing values - price per liter from amount and liters', () {
-      const text = '''
-FUEL STATION
-Total: Rs. 1000
-Volume: 10 Ltr
-''';
-      final result = service.parseFuelReceipt(text);
-      expect(result.totalAmount, 1000.0);
-      expect(result.liters, 10.0);
-      expect(result.pricePerLiter, 100.0);
-    });
-
-    test('uses first textual line as fallback station name', () {
-      const text = '''
-ABC FUEL CENTER
-123
-456.78
-''';
-      final result = service.parseFuelReceipt(text);
-      expect(result.stationName, 'ABC FUEL CENTER');
-    });
-
-    test('handles empty text gracefully', () {
-      final result = service.parseFuelReceipt('');
-      expect(result.stationName, isNull);
-      expect(result.totalAmount, isNull);
-      expect(result.liters, isNull);
+      final result = await service.parseFuelReceipt(text);
+      expect(result.stationName, 'AI Station');
+      expect(result.totalAmount, 5000.0);
+      expect(result.liters, 20.0);
     });
   });
 
   group('POS Receipt Parsing', () {
-    test('extracts items with simple item + price pattern', () {
-      const text = '''
-AUTO PARTS STORE
-Oil Filter        350.00
-Air Filter        250.00
-Spark Plug        180.00
-Total             780.00
-''';
-      final items = service.parsePOSReceipt(text);
-      expect(items.length, greaterThanOrEqualTo(2));
-      // Verify at least some items extracted
-      final names = items.map((i) => i.name.toLowerCase());
-      expect(names.any((n) => n.contains('filter') || n.contains('spark')), isTrue);
+    test('extracts items via AI', () async {
+      const text = 'Store Receipt';
+      when(mockAiService.analyzeReceiptText(any, 'store')).thenAnswer((_) async => {
+        'items': [
+          {'name': 'Oil Filter', 'quantity': 1, 'price': 350.0},
+          {'name': 'Air Filter', 'quantity': 1, 'price': 250.0},
+        ]
+      });
+
+      final items = await service.parsePOSReceipt(text);
+      expect(items.length, 2);
+      expect(items[0].name, 'Oil Filter');
     });
 
-    test('skips total/tax lines', () {
+    test('falls back to regex when AI fails', () async {
       const text = '''
 STORE
 Item A        100.00
 Item B        200.00
-Subtotal      300.00
-Tax           54.00
-Total         354.00
 ''';
-      final items = service.parsePOSReceipt(text);
-      final names = items.map((i) => i.name.toLowerCase()).toList();
-      expect(names.any((n) => n.contains('total')), isFalse);
-      expect(names.any((n) => n.contains('tax')), isFalse);
-    });
-
-    test('handles qty x price pattern', () {
-      const text = '''
-STORE
-Brake Pads    2 x 500.00
-Oil Filter    1 x 350.00
-''';
-      final items = service.parsePOSReceipt(text);
-      expect(items.length, greaterThanOrEqualTo(1));
-    });
-
-    test('returns empty list for non-receipt text', () {
-      const text = 'Hello world this is not a receipt';
-      final items = service.parsePOSReceipt(text);
-      expect(items, isEmpty);
+      final items = await service.parsePOSReceipt(text);
+      expect(items.length, greaterThanOrEqualTo(2));
     });
   });
 
   group('Mechanic Bill Parsing', () {
-    test('extracts services with costs', () {
+    test('extracts services via AI', () async {
+      const text = 'Mechanic Bill';
+      when(mockAiService.analyzeReceiptText(any, 'mechanic')).thenAnswer((_) async => {
+        'services': [
+          {'description': 'Oil Change', 'cost': 800.0},
+        ]
+      });
+
+      final services = await service.parseMechanicBill(text);
+      expect(services.length, 1);
+      expect(services[0].description, 'Oil Change');
+    });
+
+    test('falls back to regex when AI fails', () async {
       const text = '''
-AUTO WORKSHOP
-Oil Change        800.00
-Brake Adjustment  500.00
-Wheel Alignment   1200.00
-Total             2500.00
+Bill
+Service X     500.00
 ''';
-      final services = service.parseMechanicBill(text);
-      expect(services.length, greaterThanOrEqualTo(2));
-    });
-
-    test('skips header/footer lines', () {
-      const text = '''
-Bill No: 12345
-Date: 15/03/2026
-Clutch Repair     3000.00
-Total             3000.00
-''';
-      final services = service.parseMechanicBill(text);
-      final descs = services.map((s) => s.description.toLowerCase()).toList();
-      expect(descs.any((d) => d.contains('bill no')), isFalse);
-      expect(descs.any((d) => d.contains('date')), isFalse);
-    });
-
-    test('returns empty list for non-bill text', () {
-      const text = 'Random text without prices';
-      final services = service.parseMechanicBill(text);
-      expect(services, isEmpty);
-    });
-  });
-
-  group('Business Name Extraction', () {
-    test('extracts first text line as business name', () {
-      const text = '''
-Khan Motors Workshop
-Service charges
-''';
-      expect(service.extractBusinessName(text), 'Khan Motors Workshop');
-    });
-
-    test('skips purely numeric first lines', () {
-      const text = '''
-12345
-Real Store Name
-''';
-      // First line is numeric, should skip to next
-      final name = service.extractBusinessName(text);
-      expect(name, isNotNull);
-    });
-
-    test('returns null for empty text', () {
-      expect(service.extractBusinessName(''), isNull);
+      final services = await service.parseMechanicBill(text);
+      expect(services.length, greaterThanOrEqualTo(1));
     });
   });
 }

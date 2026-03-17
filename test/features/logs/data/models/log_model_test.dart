@@ -33,7 +33,26 @@ void main() {
       final fromJson = FuelLogModel.fromJson(json);
       expect(fromJson.odometer, model.odometer);
       expect(fromJson.timestamp, model.timestamp);
-      expect(fromJson.location.latitude, model.location.latitude);
+      expect(fromJson.location?.latitude, model.location?.latitude);
+    });
+
+    test('serialization works with null location', () {
+      final timestamp = DateTime.now();
+      final model = FuelLogModel(
+        id: '1',
+        odometer: 1000,
+        liters: 50.0,
+        cost: 100.0,
+        timestamp: timestamp,
+        location: null,
+        userId: 'test_user',
+      );
+
+      final json = model.toJson();
+      expect(json['location'], isNull);
+
+      final fromJson = FuelLogModel.fromJson(json);
+      expect(fromJson.location, isNull);
     });
   });
 

@@ -4,17 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/services/analytics_service.dart';
 import '../../../../injection.dart';
 import '../../../vehicles/presentation/bloc/vehicle_bloc.dart';
-import '../../data/models/category_model.dart';
 import '../bloc/category_bloc.dart';
 import '../bloc/category_event.dart';
 import '../bloc/category_state.dart';
 import '../bloc/expense_log_bloc.dart';
 import '../bloc/expense_log_event.dart';
 import '../bloc/expense_log_state.dart';
+import '../../../../core/services/ocr_service.dart';
+import '../../../../core/services/receipt_parser_service.dart';
 import '../../../../core/services/settings_service.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class AddExpensePage extends StatefulWidget {
   const AddExpensePage({super.key});
@@ -28,10 +29,98 @@ class _AddExpensePageState extends State<AddExpensePage> {
   final TextEditingController _costController = TextEditingController();
   final TextEditingController _odometerController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _litersController = TextEditingController();
 
   String _selectedCategory = 'General';
   DateTime _selectedDate = DateTime.now();
   String? _photoPath;
+  bool _isProcessing = false;
+  bool _isManualEntry = false;
+
+  final _ocrService = getIt<OCRService>();
+  final _parserService = getIt<ReceiptParserService>();
+
+  Future<void> _scanImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile == null) return;
+    await _processImage(pickedFile.path);
+  }
+
+  Future<void> _pickFromGallery() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
+    await _processImage(pickedFile.path);
+  }
+
+  Future<void> _processImage(String path) async {
+    setState(() {
+      _isProcessing = true;
+      _photoPath = path;
+    });
+
+    try {
+      final inputImage = InputImage.fromFilePath(path);
+      final recognizedText = await _ocrService.processImage(inputImage);
+      final text = recognizedText.text;
+
+      final fuelData = await _parserService.parseFuelReceipt(text);
+      setState(() {
+        if (fuelData.totalAmount != null) {
+          _costController.text = fuelData.totalAmount!.toStringAsFixed(2);
+        }
+        if (fuelData.liters != null) {
+          _litersController.text = fuelData.liters!.toString();
+        }
+        if (fuelData.stationName != null) {
+          _notesController.text = 'From ${fuelData.stationName}';
+        }
+        _isManualEntry = true;
+        _isProcessing = false;
+      });
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error scanning receipt: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _scanOdometer() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile == null) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      final inputImage = InputImage.fromFilePath(pickedFile.path);
+      final recognizedText = await _ocrService.processImage(inputImage);
+      
+      // Look for numbers in OCR that could be odometer
+      final odoPattern = RegExp(r'(\d{4,6})');
+      final match = odoPattern.firstMatch(recognizedText.text);
+      
+      if (match != null) {
+        setState(() {
+          _odometerController.text = match.group(1)!;
+          _isProcessing = false;
+        });
+      } else {
+        setState(() => _isProcessing = false);
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Could not find odometer reading in image')),
+           );
+        }
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+    }
+  }
 
   @override
   void initState() {
@@ -66,6 +155,10 @@ class _AddExpensePageState extends State<AddExpensePage> {
       final odometer = _odometerController.text.isNotEmpty
           ? int.tryParse(_odometerController.text)
           : null;
+      
+      final liters = _litersController.text.isNotEmpty
+          ? double.tryParse(_litersController.text)
+          : null;
 
       final vehicleId = context.read<VehicleBloc>().state.selectedVehicle?.id;
 
@@ -75,6 +168,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
         note: _notesController.text,
         date: _selectedDate,
         odometer: odometer,
+        liters: liters,
         photoPath: _photoPath,
         vehicleId: vehicleId,
       ));
@@ -136,11 +230,15 @@ class _AddExpensePageState extends State<AddExpensePage> {
                 ),
 
                 Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.all(24),
-                      children: [
+                  child: _isProcessing
+                      ? const Center(child: CircularProgressIndicator())
+                      : !_isManualEntry
+                          ? _buildScanPrompt()
+                          : Form(
+                              key: _formKey,
+                              child: ListView(
+                                padding: const EdgeInsets.all(24),
+                                children: [
                         // Cost Input
                         Center(
                           child: Column(
@@ -346,6 +444,10 @@ class _AddExpensePageState extends State<AddExpensePage> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.speed),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.camera_alt),
+                              onPressed: _scanOdometer,
+                            ),
                             suffixText: 'km', // or mi
                             hintText: 'e.g., 45,200',
                             border: OutlineInputBorder(
@@ -354,6 +456,23 @@ class _AddExpensePageState extends State<AddExpensePage> {
                           ),
                         ),
                         const SizedBox(height: 20),
+
+                        if (_selectedCategory.toLowerCase() == 'fuel' || _selectedCategory.toLowerCase() == 'petrol') ...[
+                          _buildLabel('Liters'),
+                          TextFormField(
+                            controller: _litersController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.gas_meter),
+                              suffixText: 'L',
+                              hintText: 'e.g., 15.5',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
 
                         _buildLabel('Notes'),
                         TextFormField(
@@ -375,7 +494,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
               ],
             ),
           ),
-          bottomSheet: Container(
+          bottomSheet: !_isManualEntry ? null : Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
@@ -483,12 +602,13 @@ class _AddExpensePageState extends State<AddExpensePage> {
           ElevatedButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
+                final newCatName = controller.text.trim();
                 context.read<CategoryBloc>().add(AddUserCategory(
-                  name: controller.text,
+                  name: newCatName,
                   iconCodePoint: Icons.label.codePoint,
                 ));
                 setState(() {
-                  _selectedCategory = controller.text;
+                  _selectedCategory = newCatName;
                 });
                 Navigator.pop(dialogContext);
               }
@@ -534,6 +654,64 @@ class _AddExpensePageState extends State<AddExpensePage> {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.7),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanPrompt() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(Icons.receipt_long, color: Theme.of(context).colorScheme.primary, size: 48),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Add Expense',
+              style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'How would you like to add your expense?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _scanImage,
+                icon: const Icon(Icons.camera_alt),
+                label: Text('Take Photo', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: OutlinedButton.icon(
+                onPressed: _pickFromGallery,
+                icon: const Icon(Icons.image),
+                label: Text('Pick from Gallery', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() => _isManualEntry = true),
+              child: Text('Enter Manually', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
             ),
           ],
         ),

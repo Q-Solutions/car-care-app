@@ -13,6 +13,7 @@ class SaveExpenseLog extends ExpenseLogEvent {
   final String note;
   final DateTime date;
   final int? odometer;
+  final double? liters;
   final String? photoPath;
   final String? vehicleId;
 
@@ -22,10 +23,11 @@ class SaveExpenseLog extends ExpenseLogEvent {
     required this.note,
     required this.date,
     this.odometer,
+    this.liters,
     this.photoPath,
     this.vehicleId,
   });
 
   @override
-  List<Object?> get props => [cost, category, note, date, odometer, photoPath, vehicleId];
+  List<Object?> get props => [cost, category, note, date, odometer, liters, photoPath, vehicleId];
 }
