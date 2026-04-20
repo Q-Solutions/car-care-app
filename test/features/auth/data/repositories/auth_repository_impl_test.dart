@@ -91,27 +91,28 @@ void main() {
 
     group('signInWithGoogle', () {
       test('calls authenticate and signInWithCredential on success', () async {
-        when(mockGoogleSignIn.initialize()).thenAnswer((_) async {});
-        when(mockGoogleSignIn.authenticate()).thenAnswer((_) async => mockGoogleUser);
-        when((mockGoogleUser as dynamic).authentication).thenReturn(mockGoogleAuth);
-        when((mockGoogleAuth as dynamic).idToken).thenReturn('idToken');
-        when((mockGoogleAuth as dynamic).accessToken).thenReturn('accessToken');
-        when(mockFirebaseAuth.signInWithCredential(any)).thenAnswer((_) async => mockUserCredential);
-        
+        when(mockGoogleSignIn.authenticate(scopeHint: anyNamed('scopeHint')))
+            .thenAnswer((_) async => mockGoogleUser);
+        when(mockGoogleUser.authentication).thenReturn(mockGoogleAuth);
+        when(mockGoogleAuth.idToken).thenReturn('idToken');
+        when(mockFirebaseAuth.signInWithCredential(any))
+            .thenAnswer((_) async => mockUserCredential);
+
         await repository.signInWithGoogle();
- 
-        verify(mockGoogleSignIn.initialize()).called(1);
-        verify(mockGoogleSignIn.authenticate()).called(1);
+
+        verify(mockGoogleSignIn.authenticate(scopeHint: anyNamed('scopeHint')))
+            .called(1);
         verify(mockFirebaseAuth.signInWithCredential(any)).called(1);
       });
- 
+
       test('throws FirebaseAuthException when user cancels', () async {
-        when(mockGoogleSignIn.initialize()).thenAnswer((_) async {});
-        when(mockGoogleSignIn.authenticate()).thenThrow(Exception('cancel'));
- 
+        when(mockGoogleSignIn.authenticate(scopeHint: anyNamed('scopeHint')))
+            .thenThrow(Exception('cancel'));
+
         expect(
           () => repository.signInWithGoogle(),
-          throwsA(isA<FirebaseAuthException>().having((e) => e.code, 'code', 'google-sign-in-cancelled')),
+          throwsA(isA<FirebaseAuthException>().having(
+              (e) => e.code, 'code', 'google-sign-in-cancelled')),
         );
       });
     });
