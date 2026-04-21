@@ -13,8 +13,8 @@ class FakeAIService implements AIService {
   }
   
   @override
-  Future<Map<String, dynamic>?> analyzeReceiptText(String text, String type) async {
-    return null;
+  Map<String, dynamic>? safeJsonParse(String raw) {
+    return null; // Not needed for these tests
   }
 }
 
