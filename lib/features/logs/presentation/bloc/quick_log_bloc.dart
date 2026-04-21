@@ -146,12 +146,17 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
   }
 
   Future<void> _onProcessImage(ProcessImage event, Emitter<QuickLogState> emit) async {
-    if (state.imageFile == null) return;
+    if (state.imageFile == null) {
+      debugPrint('QUICK_LOG_BLOC: No image file to process');
+      return;
+    }
 
     emit(state.copyWith(status: QuickLogStatus.processing));
+    debugPrint('QUICK_LOG_BLOC: Status -> Processing. Path: ${state.imageFile!.path}');
 
     try {
       final parsed = await _receiptParserService.parseAnyReceipt(state.imageFile!.path);
+      debugPrint('QUICK_LOG_BLOC: Result from Parser: ${parsed?.runtimeType}');
 
       if (parsed is ParsedFuelReceipt) {
         emit(state.copyWith(
@@ -177,12 +182,14 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
         ));
       } else {
         // Fallback or Unknown
+        debugPrint('QUICK_LOG_BLOC: Could not categorize based on parser result.');
         emit(state.copyWith(
           status: QuickLogStatus.error,
           errorMessage: 'Could not categorize the receipt from the image.',
         ));
       }
     } catch (e) {
+      debugPrint('QUICK_LOG_BLOC Error: $e');
       emit(state.copyWith(
         status: QuickLogStatus.error,
         errorMessage: 'AI Processing failed: $e',

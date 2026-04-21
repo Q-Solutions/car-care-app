@@ -88,6 +88,7 @@ RULES:
     }
 
     try {
+      debugPrint('AI_SERVICE: Sending image to Gemini...');
       final prompt = TextPart(systemPrompt);
       final imagePart = DataPart('image/jpeg', imageBytes);
 
@@ -96,32 +97,56 @@ RULES:
           .timeout(const Duration(seconds: 25));
 
       final text = response.text;
-      if (text == null) return null;
+      debugPrint('AI_SERVICE: Raw text from Gemini: "$text"');
+      
+      if (text == null) {
+        debugPrint('AI_SERVICE Error: Gemini returned no text');
+        return null;
+      }
 
-      return _safeJsonParse(text);
+      return safeJsonParse(text);
     } catch (e) {
-      debugPrint('Gemini Error: $e');
+      debugPrint('AI_SERVICE Gemini Error: $e');
       return null;
     }
   }
 
-  /// 🔥 SAFE JSON PARSER (CRITICAL FIX)
-  Map<String, dynamic>? _safeJsonParse(String raw) {
+  /// 🔥 ROBUST JSON EXTRACTOR
+  @visibleForTesting
+  Map<String, dynamic>? safeJsonParse(String raw) {
     try {
       String cleaned = raw.trim();
 
-      // remove markdown
+      // 1. Precise Markdown Extraction
       if (cleaned.contains('```')) {
-        cleaned = cleaned
-            .replaceAll(RegExp(r'```json'), '')
-            .replaceAll('```', '')
-            .trim();
+        final regExp = RegExp(r'```(?:json)?([\s\S]*?)```');
+        final match = regExp.firstMatch(cleaned);
+        if (match != null) {
+          cleaned = match.group(1)!.trim();
+          debugPrint('AI_SERVICE: Extracted from markdown: "$cleaned"');
+        }
       }
 
-      return jsonDecode(cleaned);
+      // 2. Brute Force Substring Extraction (Find first { and last })
+      if (!cleaned.startsWith('{')) {
+        final start = cleaned.indexOf('{');
+        final end = cleaned.lastIndexOf('}');
+        if (start != -1 && end != -1 && end > start) {
+          cleaned = cleaned.substring(start, end + 1);
+          debugPrint('AI_SERVICE: Extracted via braces indexing: "$cleaned"');
+        }
+      }
+
+      final decoded = jsonDecode(cleaned);
+      if (decoded is Map<String, dynamic>) {
+        debugPrint('AI_SERVICE: Successfully parsed JSON. Type: ${decoded['type']}');
+        return decoded;
+      }
+      debugPrint('AI_SERVICE Error: Parsed JSON is not a Map: $decoded');
+      return null;
     } catch (e) {
-      debugPrint('JSON Parse Failed: $e');
-      debugPrint('RAW RESPONSE: $raw');
+      debugPrint('AI_SERVICE JSON Parse Failed: $e');
+      debugPrint('AI_SERVICE RAW RESPONSE causing failure: "$raw"');
       return null;
     }
   }
@@ -168,7 +193,7 @@ RULES:
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final content = data['choices'][0]['message']['content'];
-        return _safeJsonParse(content.toString());
+        return safeJsonParse(content.toString());
       }
     } catch (e) {
       debugPrint('OpenAI Error: $e');

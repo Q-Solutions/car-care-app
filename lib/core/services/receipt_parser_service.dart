@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'ai_service.dart';
 
@@ -169,17 +170,23 @@ class ReceiptParserService {
     final bytes = await File(imagePath).readAsBytes();
     final aiData = await _aiService.analyzeReceiptImage(bytes);
 
-    if (aiData == null) return null;
+    if (aiData == null) {
+      debugPrint('PARSER_SERVICE: AI returned null data for the image.');
+      return null;
+    }
 
     final type = aiData['type']?.toString().toLowerCase();
+    debugPrint('PARSER_SERVICE: AI classified receipt as type: "$type"');
 
     if (type == 'refuel') {
+      debugPrint('PARSER_SERVICE: Mapping to ParsedFuelReceipt');
       return ParsedFuelReceipt(
         stationName: aiData['name']?.toString(),
         totalAmount: _parseDouble(aiData['total_amount']),
         liters: _parseDouble(aiData['liter']),
       );
     } else if (type == 'store') {
+      debugPrint('PARSER_SERVICE: Mapping to ParsedPOSReceipt');
       final itemsData = aiData['items'] as List<dynamic>? ?? [];
       return ParsedPOSReceipt(
         storeName: aiData['name']?.toString(),
@@ -191,6 +198,7 @@ class ReceiptParserService {
         totalAmount: _parseDouble(aiData['total_amount']),
       );
     } else if (type == 'mechanic') {
+      debugPrint('PARSER_SERVICE: Mapping to ParsedMechanicBill');
       final servicesData = aiData['items'] as List<dynamic>? ?? [];
       return ParsedMechanicBill(
         mechanicName: aiData['name']?.toString(),
@@ -202,6 +210,7 @@ class ReceiptParserService {
       );
     }
 
+    debugPrint('PARSER_SERVICE Error: Unknown or missing type in AI response: "$type"');
     return null; // Could not map
   }
 }
