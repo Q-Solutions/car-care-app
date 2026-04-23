@@ -71,7 +71,7 @@ void main() {
     blocTest<ReportsBloc, ReportsState>(
       'emits [loading, loaded] when LoadReports is added successfully',
       build: () {
-        when(() => mockLogRepository.getRecentFuelLogs())
+        when(() => mockLogRepository.getAllFuelLogs())
             .thenAnswer((_) async => tFuelLogs);
         when(() => mockLogRepository.getMaintenanceLogs())
             .thenAnswer((_) async => tMaintenanceLogs);
@@ -91,7 +91,7 @@ void main() {
     blocTest<ReportsBloc, ReportsState>(
       'emits [loading, error] when LoadReports fails',
       build: () {
-        when(() => mockLogRepository.getRecentFuelLogs())
+        when(() => mockLogRepository.getAllFuelLogs())
             .thenThrow(Exception('Failed to load logs'));
         return reportsBloc;
       },

@@ -83,6 +83,41 @@ class LogRepositoryImpl implements LogRepository {
   }
 
   @override
+  Future<List<FuelLogModel>> getAllFuelLogs() async {
+    final userId = _firebaseAuth.currentUser?.uid;
+    if (userId == null) return [];
+
+    var box = Hive.isBoxOpen('fuel_logs')
+        ? Hive.box<FuelLogModel>('fuel_logs')
+        : await Hive.openBox<FuelLogModel>('fuel_logs');
+
+    List<FuelLogModel> logs = box.values.where((log) => log.userId == userId).toList();
+
+    if (logs.isEmpty) {
+      try {
+        final snapshot = await _firestore
+            .collection('fuel_logs')
+            .where('userId', isEqualTo: userId)
+            .orderBy('timestamp', descending: true)
+            .get();
+
+        logs = snapshot.docs.map((doc) => FuelLogModel.fromJson(doc.data())).toList();
+
+        for (var log in logs) {
+          await box.put(log.id, log);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching all fuel logs from Firestore: $e");
+        }
+      }
+    }
+
+    logs.sort((a, b) => b.odometer.compareTo(a.odometer));
+    return logs;
+  }
+
+  @override
   Future<void> addMaintenanceLog(MaintenanceLogModel log) async {
     final userId = _firebaseAuth.currentUser?.uid;
     if (userId == null) throw Exception("User not authenticated");

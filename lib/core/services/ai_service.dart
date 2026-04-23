@@ -3,6 +3,8 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'settings_service.dart';
 
 @lazySingleton
@@ -32,6 +34,9 @@ You are an expert OCR + financial parser.
 Extract structured data from the image.
 
 Return ONLY valid JSON (no markdown, no explanation).
+
+"type": MUST be exactly one of ["refuel", "store", "mechanic"].
+Do not use synonyms like fuel, petrol, shop, repair.
 
 Supported types:
 
@@ -143,9 +148,13 @@ RULES:
       }
       debugPrint('AI_SERVICE Error: Parsed JSON is not a Map: $decoded');
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('AI_SERVICE JSON Parse Failed: $e');
       debugPrint('AI_SERVICE RAW RESPONSE causing failure: "$raw"');
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
+        FirebaseCrashlytics.instance.log('AI_SERVICE RAW RESPONSE causing failure: "$raw"');
+        FirebaseCrashlytics.instance.recordError(e, stackTrace, reason: 'AI JSON Parse Failed');
+      }
       return null;
     }
   }
@@ -194,8 +203,11 @@ RULES:
         final content = data['choices'][0]['message']['content'];
         return safeJsonParse(content.toString());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('OpenAI Error: $e');
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace, reason: 'OpenAI API Request Failed');
+      }
     }
 
     return null;

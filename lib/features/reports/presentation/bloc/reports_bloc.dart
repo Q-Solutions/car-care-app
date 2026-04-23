@@ -15,7 +15,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
   Future<void> _onLoadReports(LoadReports event, Emitter<ReportsState> emit) async {
     emit(state.copyWith(status: ReportsStatus.loading));
     try {
-      final fuelLogs = await _logRepository.getRecentFuelLogs();
+      final fuelLogs = await _logRepository.getAllFuelLogs();
       final maintenanceLogs = await _logRepository.getMaintenanceLogs();
       emit(state.copyWith(
         status: ReportsStatus.loaded,

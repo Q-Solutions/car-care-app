@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'ai_service.dart';
 
 /// Represents the type of receipt detected
@@ -164,6 +166,26 @@ class ReceiptParserService {
     return ParsedMechanicBill();
   }
 
+  String _normalizeType(String? rawType) {
+    if (rawType == null) return 'unknown';
+
+    final t = rawType.toLowerCase();
+
+    if (['refuel', 'fuel', 'petrol', 'gas'].contains(t)) {
+      return 'refuel';
+    }
+
+    if (['store', 'pos', 'shop', 'mart'].contains(t)) {
+      return 'store';
+    }
+
+    if (['mechanic', 'repair', 'service', 'garage'].contains(t)) {
+      return 'mechanic';
+    }
+
+    return 'unknown';
+  }
+
   /// Master parsing function that lets Gemini classify the receipt
   Future<dynamic> parseAnyReceipt(String imagePath) async {
     final bytes = await File(imagePath).readAsBytes();
@@ -174,8 +196,25 @@ class ReceiptParserService {
       return null;
     }
 
-    final type = aiData['type']?.toString().toLowerCase();
-    debugPrint('PARSER_SERVICE: AI classified receipt as type: "$type"');
+    if (!kIsWeb && Firebase.apps.isNotEmpty) {
+      FirebaseCrashlytics.instance.log('AI RAW RESPONSE: $aiData');
+    }
+
+    final rawType = aiData['type']?.toString();
+    String type = _normalizeType(rawType);
+    
+    // Fallback Classification
+    if (type == 'unknown') {
+      if (aiData['liter'] != null) {
+        type = 'refuel';
+      } else if (aiData['items'] != null && aiData['labor_cost'] != null) {
+        type = 'mechanic';
+      } else if (aiData['items'] != null) {
+        type = 'store';
+      }
+    }
+
+    debugPrint('PARSER_SERVICE: AI classified receipt as normalized type: "$type"');
 
     if (type == 'refuel') {
       debugPrint('PARSER_SERVICE: Mapping to ParsedFuelReceipt');
@@ -209,7 +248,10 @@ class ReceiptParserService {
       );
     }
 
-    debugPrint('PARSER_SERVICE Error: Unknown or missing type in AI response: "$type"');
+    debugPrint('PARSER_SERVICE Error: Unknown or missing type in AI response: "$rawType" normalized to "$type"');
+    if (!kIsWeb && Firebase.apps.isNotEmpty) {
+      FirebaseCrashlytics.instance.log('PARSER_SERVICE Failed to map normalized type "$type" from raw "$rawType"');
+    }
     return null; // Could not map
   }
 }
