@@ -7,6 +7,16 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'settings_service.dart';
 
+class AIException implements Exception {
+  final String message;
+  final String? code;
+  AIException(this.message, {this.code});
+  @override
+  String toString() => message;
+}
+
+enum ReceiptType { fuel, pos, mechanic, unknown }
+
 @lazySingleton
 class AIService {
   static const _defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
@@ -51,23 +61,24 @@ class AIService {
   }
 
   Future<Map<String, dynamic>?> analyzeReceiptImage(
-      Uint8List imageBytes) async {
-    const systemPrompt = '''
+      Uint8List imageBytes, {ReceiptType? typeHint}) async {
+    final typeStr = typeHint?.name ?? 'refuel';
+
+    final systemPrompt = '''
 You are an expert OCR + financial parser.
 
 Extract structured data from the image.
+The user has already identified this as a "$typeStr" receipt/bill.
 
 Return ONLY valid JSON (no markdown, no explanation).
 
-"type": MUST be exactly one of ["refuel", "store", "mechanic"].
-Do not use synonyms like fuel, petrol, shop, repair.
+"type": MUST be exactly "$typeStr".
 
-Supported types:
-
+Fields to extract:
 1. Refuel:
 {
 "type": "refuel",
-"name": "...",
+"name": "Station Name",
 "date": "YYYY-MM-DD",
 "liter": number,
 "price_per_liter": number,
@@ -79,9 +90,9 @@ Supported types:
 2. Store:
 {
 "type": "store",
-"name": "...",
+"name": "Store Name",
 "date": "YYYY-MM-DD",
-"items": [{"name": "...", "qty": number, "price": number, "total": number}],
+"items": [{"name": "item name", "qty": number, "price": unit_price, "total": line_total}],
 "total_amount": number,
 "currency": "...",
 "odometer": number|null
@@ -90,9 +101,9 @@ Supported types:
 3. Mechanic:
 {
 "type": "mechanic",
-"name": "...",
+"name": "Mechanic/Garage Name",
 "date": "YYYY-MM-DD",
-"items": [{"name": "...", "price": number}],
+"items": [{"name": "Service/Part description", "price": cost}],
 "labor_cost": number|null,
 "total_amount": number,
 "currency": "...",
@@ -112,7 +123,7 @@ RULES:
 
     if (_defaultApiKey.isEmpty) {
       debugPrint('Missing GEMINI_API_KEY');
-      return null;
+      throw AIException('Gemini API Key is not configured. Please add it to your environment.');
     }
 
     try {
@@ -128,14 +139,26 @@ RULES:
       debugPrint('AI_SERVICE: Raw text from Gemini: "$text"');
       
       if (text == null) {
-        debugPrint('AI_SERVICE Error: Gemini returned no text');
-        return null;
+        throw AIException('Gemini returned an empty response. The image might be too blurry or contain no readable text.');
       }
 
       return safeJsonParse(text);
+    } on GenerativeAIException catch (e) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('quota') || msg.contains('429')) {
+        throw AIException('AI Rate limit exceeded. Please try again in a few minutes.', code: 'quota_exceeded');
+      } else if (msg.contains('api key') || msg.contains('401') || msg.contains('403')) {
+        throw AIException('Invalid Gemini API Key. Please check your configuration.', code: 'invalid_api_key');
+      } else if (msg.contains('safety')) {
+        throw AIException('The image was flagged by safety filters. Please ensure it is a valid receipt.', code: 'safety_filter');
+      }
+      throw AIException('Gemini AI Error: ${e.message}');
+    } on UnsupportedError catch (e) {
+      throw AIException('This device or platform does not support the AI model: ${e.message}');
     } catch (e) {
+      if (e is AIException) rethrow;
       debugPrint('AI_SERVICE Gemini Error: $e');
-      return null;
+      throw AIException('Unexpected AI error: ${e.toString()}');
     }
   }
 
@@ -189,6 +212,10 @@ RULES:
     final apiKey = _settingsService.aiApiKey;
     final model = _settingsService.aiModel;
 
+    if (apiKey.isEmpty) {
+      throw AIException('Custom AI API Key is missing. Please check your settings.', code: 'missing_api_key');
+    }
+
     final url = Uri.parse(
         baseUrl.endsWith('/') ? '${baseUrl}chat/completions' : '$baseUrl/chat/completions');
 
@@ -226,14 +253,35 @@ RULES:
         final data = jsonDecode(response.body);
         final content = data['choices'][0]['message']['content'];
         return safeJsonParse(content.toString());
+      } else {
+        String errorMsg = 'AI API Error (Status ${response.statusCode})';
+        String? code;
+
+        try {
+          final errData = jsonDecode(response.body);
+          errorMsg = errData['error']?['message'] ?? errorMsg;
+          code = errData['error']?['code'];
+        } catch (_) {}
+
+        if (response.statusCode == 401) {
+          throw AIException('Invalid AI API Key. Please verify your credentials.', code: 'invalid_api_key');
+        } else if (response.statusCode == 404) {
+          throw AIException('AI API Endpoint not found. Please check the Base URL.', code: 'invalid_url');
+        } else if (response.statusCode == 429) {
+          throw AIException('AI Rate limit exceeded. Please try again later.', code: 'quota_exceeded');
+        } else if (response.statusCode >= 500) {
+          throw AIException('AI Provider is currently unavailable. Please try again in a moment.', code: 'provider_down');
+        }
+        
+        throw AIException(errorMsg, code: code);
       }
     } catch (e, stackTrace) {
+      if (e is AIException) rethrow;
       debugPrint('OpenAI Error: $e');
       if (!kIsWeb && Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace, reason: 'OpenAI API Request Failed');
       }
+      throw AIException('Connection failed: Could not reach the AI service. Please check your internet.');
     }
-
-    return null;
   }
 }

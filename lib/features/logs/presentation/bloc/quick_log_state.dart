@@ -17,6 +17,7 @@ class QuickLogState extends Equatable {
   final ReceiptType? receiptType;
   final List<POSItem>? parsedPOSItems;
   final List<ServiceItem>? parsedServiceItems;
+  final String? scannedCurrency;
   final String? errorMessage;
 
   const QuickLogState({
@@ -31,6 +32,7 @@ class QuickLogState extends Equatable {
     this.receiptType,
     this.parsedPOSItems,
     this.parsedServiceItems,
+    this.scannedCurrency,
     this.errorMessage,
   });
 
@@ -46,6 +48,7 @@ class QuickLogState extends Equatable {
     ReceiptType? receiptType,
     List<POSItem>? parsedPOSItems,
     List<ServiceItem>? parsedServiceItems,
+    String? scannedCurrency,
     String? errorMessage,
   }) {
     return QuickLogState(
@@ -60,11 +63,12 @@ class QuickLogState extends Equatable {
       receiptType: receiptType ?? this.receiptType,
       parsedPOSItems: parsedPOSItems ?? this.parsedPOSItems,
       parsedServiceItems: parsedServiceItems ?? this.parsedServiceItems,
+      scannedCurrency: scannedCurrency ?? this.scannedCurrency,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
   List<Object?> get props => [status, cameraController, imageFile, odometer, liters, cost,
-    stationName, odometerPhotoPath, receiptType, parsedPOSItems, parsedServiceItems, errorMessage];
+    stationName, odometerPhotoPath, receiptType, parsedPOSItems, parsedServiceItems, scannedCurrency, errorMessage];
 }

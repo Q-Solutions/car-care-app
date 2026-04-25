@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/services/receipt_parser_service.dart';
+import '../../../../core/services/ai_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../injection.dart';
 import '../../../../core/services/settings_service.dart';
@@ -101,8 +102,9 @@ class _ScanReceiptPageState extends State<ScanReceiptPage> {
     } catch (e) {
       setState(() => _isProcessing = false);
       if (mounted) {
+        final message = e is AIException ? e.message : 'Error scanning receipt: $e';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error scanning receipt: $e')),
+          SnackBar(content: Text(message)),
         );
       }
     }

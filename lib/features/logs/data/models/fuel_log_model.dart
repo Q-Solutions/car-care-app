@@ -39,7 +39,10 @@ class FuelLogModel {
 
   @HiveField(9)
   final String userId;
-
+  
+  @HiveField(10)
+  final String? currency;
+  
   FuelLogModel({
     required this.id,
     required this.odometer,
@@ -51,6 +54,7 @@ class FuelLogModel {
     this.vehicleId,
     this.stationName,
     this.odometerPhotoPath,
+    this.currency,
   });
 
   factory FuelLogModel.fromJson(Map<String, dynamic> json) =>

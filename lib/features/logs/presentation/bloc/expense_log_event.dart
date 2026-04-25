@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../data/models/location_model.dart';
 
 abstract class ExpenseLogEvent extends Equatable {
   const ExpenseLogEvent();
@@ -16,6 +17,8 @@ class SaveExpenseLog extends ExpenseLogEvent {
   final double? liters;
   final String? photoPath;
   final String? vehicleId;
+  final LocationModel? location;
+  final String? currency;
 
   const SaveExpenseLog({
     required this.cost,
@@ -26,10 +29,12 @@ class SaveExpenseLog extends ExpenseLogEvent {
     this.liters,
     this.photoPath,
     this.vehicleId,
+    this.location,
+    this.currency,
   });
 
   @override
-  List<Object?> get props => [cost, category, note, date, odometer, liters, photoPath, vehicleId];
+  List<Object?> get props => [cost, category, note, date, odometer, liters, photoPath, vehicleId, location, currency];
 }
 
 class UpdateExpenseLog extends ExpenseLogEvent {
@@ -42,6 +47,8 @@ class UpdateExpenseLog extends ExpenseLogEvent {
   final double? liters;
   final String? photoPath;
   final String? vehicleId;
+  final LocationModel? location;
+  final String? currency;
 
   const UpdateExpenseLog({
     required this.id,
@@ -53,8 +60,10 @@ class UpdateExpenseLog extends ExpenseLogEvent {
     this.liters,
     this.photoPath,
     this.vehicleId,
+    this.location,
+    this.currency,
   });
 
   @override
-  List<Object?> get props => [id, cost, category, note, date, odometer, liters, photoPath, vehicleId];
+  List<Object?> get props => [id, cost, category, note, date, odometer, liters, photoPath, vehicleId, location, currency];
 }

@@ -1,5 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 
@@ -67,9 +70,46 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint("Firebase Sign-In successful: ${userCredential.user?.uid}");
 
       return userCredential;
-    } catch (e, stack) {
-      debugPrint("Google Sign-In Error: $e");
+    } on PlatformException catch (e, stack) {
+      debugPrint("Google Sign-In Platform Error: ${e.code} - ${e.message}");
       debugPrint("Stack Trace: $stack");
+
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
+        FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Google Sign-In Platform Error: ${e.code}');
+      }
+
+      String message;
+      String code = 'google-sign-in-failed';
+
+      switch (e.code) {
+        case '12501':
+          code = 'google-sign-in-cancelled';
+          message = 'Google sign-in was cancelled by the user.';
+          break;
+        case '10':
+          message = 'Developer error: This usually means the SHA-1 fingerprint is missing in Firebase or the configuration is incorrect.';
+          break;
+        case '12500':
+          message = 'Sign-in failed. Please ensure Google Play Services is updated and you have a valid internet connection.';
+          break;
+        case '7':
+          message = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          message = e.message ?? 'An unknown Google Sign-In error occurred (Code: ${e.code})';
+      }
+
+      throw FirebaseAuthException(
+        code: code,
+        message: message,
+      );
+    } catch (e, stack) {
+      debugPrint("Google Sign-In Unexpected Error: $e");
+      debugPrint("Stack Trace: $stack");
+
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
+        FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Google Sign-In Unexpected Error');
+      }
 
       if (e is FirebaseAuthException) {
         rethrow;
@@ -85,7 +125,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       throw FirebaseAuthException(
         code: 'google-sign-in-failed',
-        message: e.toString(),
+        message: 'Google Sign-In failed: ${e.toString()}',
       );
     }
   }

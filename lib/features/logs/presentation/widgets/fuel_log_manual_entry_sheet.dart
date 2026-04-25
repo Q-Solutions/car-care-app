@@ -114,11 +114,12 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
              );
           }
         },
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               // Drag Handle
               Container(
                 width: 48,
@@ -174,21 +175,34 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
                           icon: Icons.local_gas_station,
                           suffix: 'L',
                         ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 4,
+                        const SizedBox(height: 12),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 2.5,
                           children: [1, 5, 10, 20].map((val) => InkWell(
                             onTap: () {
                               double current = double.tryParse(_litersController.text) ?? 0.0;
                               _litersController.text = (current + val).toStringAsFixed(1);
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF135BEC).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
+                                color: const Color(0xFF135BEC).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF135BEC).withOpacity(0.4), width: 1.5),
                               ),
-                              child: Text('+$val', style: const TextStyle(color: Color(0xFF135BEC), fontSize: 12, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                '+$val L', 
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF135BEC), 
+                                  fontSize: 16, 
+                                  fontWeight: FontWeight.bold
+                                )
+                              ),
                             ),
                           )).toList(),
                         ),
@@ -198,11 +212,15 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
 
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildField(
-                      controller: _costController,
-                      label: 'Total Cost',
-                      icon: Icons.monetization_on,
-                      prefix: getIt<SettingsService>().currency,
+                    child: BlocBuilder<QuickLogBloc, QuickLogState>(
+                      builder: (context, state) {
+                        return _buildField(
+                          controller: _costController,
+                          label: 'Total Cost',
+                          icon: Icons.monetization_on,
+                          prefix: state.scannedCurrency ?? getIt<SettingsService>().currency,
+                        );
+                      }
                     ),
                   ),
                 ],
@@ -262,6 +280,7 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
           ),
         ),
       ),
+    ),
     );
   }
 

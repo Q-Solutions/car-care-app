@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/settings_service.dart';
@@ -138,20 +139,41 @@ class TransactionDetailPage extends StatelessWidget {
             if (lat != null && lng != null) ...[
               const Text('Location', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              InkWell(
-                onTap: () => _openMap(lat!, lng!),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardDark,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.blueAccent),
-                      const SizedBox(width: 12),
-                      const Expanded(child: Text('View on Map', style: TextStyle(color: Colors.white))),
-                      const Icon(Icons.open_in_new, color: Colors.grey, size: 16),
+                      AbsorbPointer(
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(lat, lng),
+                            zoom: 15,
+                          ),
+                          markers: {
+                            Marker(
+                              markerId: const MarkerId('location'),
+                              position: LatLng(lat, lng),
+                            ),
+                          },
+                          zoomControlsEnabled: false,
+                          myLocationButtonEnabled: false,
+                          mapToolbarEnabled: false,
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _openMap(lat!, lng!),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

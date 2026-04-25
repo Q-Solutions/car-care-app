@@ -126,26 +126,17 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i346.FirebasePerformance>(),
       ),
     );
-    gh.lazySingleton<_i729.ReceiptParserService>(
-      () => _i729.ReceiptParserService(gh<_i716.AIService>()),
-    );
     gh.factory<_i363.AuthBloc>(
       () => _i363.AuthBloc(gh<_i1015.AuthRepository>()),
-    );
-    gh.factory<_i795.QuickLogBloc>(
-      () => _i795.QuickLogBloc(
-        gh<_i400.OCRService>(),
-        gh<_i65.LocationService>(),
-        gh<_i349.LogRepository>(),
-        gh<_i729.ReceiptParserService>(),
-        gh<_i59.FirebaseAuth>(),
-      ),
     );
     gh.factory<_i958.DashboardBloc>(
       () => _i958.DashboardBloc(gh<_i349.LogRepository>()),
     );
     gh.factory<_i866.ReportsBloc>(
       () => _i866.ReportsBloc(gh<_i349.LogRepository>()),
+    );
+    gh.lazySingleton<_i729.ReceiptParserService>(
+      () => _i729.ReceiptParserService(gh<_i729.AIService>()),
     );
     gh.lazySingleton<_i737.VehicleRepository>(
       () => _i186.VehicleRepositoryImpl(
@@ -164,6 +155,15 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i234.CategoryBloc>(
       () => _i234.CategoryBloc(gh<_i165.CategoryRepository>()),
+    );
+    gh.factory<_i795.QuickLogBloc>(
+      () => _i795.QuickLogBloc(
+        gh<_i400.OCRService>(),
+        gh<_i65.LocationService>(),
+        gh<_i349.LogRepository>(),
+        gh<_i729.ReceiptParserService>(),
+        gh<_i59.FirebaseAuth>(),
+      ),
     );
     return this;
   }

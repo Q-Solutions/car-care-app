@@ -39,11 +39,12 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
           liters: event.liters ?? 0.0,
           cost: event.cost,
           timestamp: event.date,
-          location: null,
+          location: event.location,
           userId: userId,
           vehicleId: event.vehicleId ?? '',
           stationName: event.note.startsWith('From ') ? event.note.replaceFirst('From ', '') : null,
           odometerPhotoPath: event.photoPath,
+          currency: event.currency,
         );
         await _logRepository.addFuelLog(fuelLog);
       } else {
@@ -58,6 +59,7 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
           photoPath: event.photoPath,
           odometer: event.odometer,
           vehicleId: event.vehicleId,
+          currency: event.currency,
         );
         await _logRepository.addMaintenanceLog(log);
       }
@@ -90,11 +92,12 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
           liters: event.liters ?? 0.0,
           cost: event.cost,
           timestamp: event.date,
-          location: null,
+          location: event.location,
           userId: userId,
           vehicleId: event.vehicleId ?? '',
           stationName: event.note.startsWith('From ') ? event.note.replaceFirst('From ', '') : null,
           odometerPhotoPath: event.photoPath,
+          currency: event.currency,
         );
         await _logRepository.updateFuelLog(fuelLog);
       } else {
@@ -108,6 +111,7 @@ class ExpenseLogBloc extends Bloc<ExpenseLogEvent, ExpenseLogState> {
           photoPath: event.photoPath,
           odometer: event.odometer,
           vehicleId: event.vehicleId,
+          currency: event.currency,
         );
         await _logRepository.updateMaintenanceLog(log);
       }

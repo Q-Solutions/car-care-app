@@ -164,7 +164,12 @@ class _DashboardViewState extends State<DashboardView> {
                                 Text('Recent Logs', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllTransactionsPage()));
+                                    Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<DashboardBloc>(),
+                                        child: const AllTransactionsPage(),
+                                      ),
+                                    ));
                                   },
                                   child: const Text('View All'),
                                 ),

@@ -3,10 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+export 'ai_service.dart';
 import 'ai_service.dart';
-
-/// Represents the type of receipt detected
-enum ReceiptType { fuel, pos, mechanic, unknown }
 
 /// Parsed data from a fuel/petrol receipt
 class ParsedFuelReceipt {
@@ -16,12 +14,15 @@ class ParsedFuelReceipt {
   final double? pricePerLiter;
   final String? location;
 
+  final String? currency;
+
   ParsedFuelReceipt({
     this.stationName,
     this.totalAmount,
     this.liters,
     this.pricePerLiter,
     this.location,
+    this.currency,
   });
 
   @override
@@ -47,7 +48,9 @@ class ParsedPOSReceipt {
   final List<POSItem> items;
   final double? totalAmount;
 
-  ParsedPOSReceipt({this.storeName, this.items = const [], this.totalAmount});
+  final String? currency;
+
+  ParsedPOSReceipt({this.storeName, this.items = const [], this.totalAmount, this.currency});
 }
 
 /// A single service item from a mechanic bill
@@ -67,10 +70,13 @@ class ParsedMechanicBill {
   final List<ServiceItem> services;
   final double? totalAmount;
 
+  final String? currency;
+
   ParsedMechanicBill({
     this.mechanicName,
     this.services = const [],
     this.totalAmount,
+    this.currency,
   });
 }
 
@@ -106,15 +112,16 @@ class ReceiptParserService {
   /// Parse a fuel/petrol receipt perfectly structured from JSON
   Future<ParsedFuelReceipt> parseFuelReceipt(String imagePath) async {
     final bytes = await File(imagePath).readAsBytes();
-    final aiData = await _aiService.analyzeReceiptImage(bytes);
+    final aiData = await _aiService.analyzeReceiptImage(bytes, typeHint: ReceiptType.fuel);
     
     if (aiData != null) {
       return ParsedFuelReceipt(
         stationName: aiData['name']?.toString(),
         totalAmount: _parseDouble(aiData['total_amount']),
         liters: _parseDouble(aiData['liter']),
-        pricePerLiter: null, // Gemini can skip strict price per liter without affecting global logic
+        pricePerLiter: null,
         location: null,
+        currency: aiData['currency']?.toString(),
       );
     }
     
@@ -124,7 +131,7 @@ class ReceiptParserService {
   /// Parse a POS/store receipt perfectly structured from JSON
   Future<ParsedPOSReceipt> parsePOSReceipt(String imagePath) async {
     final bytes = await File(imagePath).readAsBytes();
-    final aiData = await _aiService.analyzeReceiptImage(bytes);
+    final aiData = await _aiService.analyzeReceiptImage(bytes, typeHint: ReceiptType.pos);
     
     if (aiData != null && aiData['items'] != null) {
       final List<dynamic> itemsData = aiData['items'];
@@ -138,6 +145,7 @@ class ReceiptParserService {
         storeName: aiData['name']?.toString(),
         items: parsedItems,
         totalAmount: _parseDouble(aiData['total_amount']),
+        currency: aiData['currency']?.toString(),
       );
     }
 
@@ -147,7 +155,7 @@ class ReceiptParserService {
   /// Parse a mechanic/repair bill perfectly structured from JSON
   Future<ParsedMechanicBill> parseMechanicBill(String imagePath) async {
     final bytes = await File(imagePath).readAsBytes();
-    final aiData = await _aiService.analyzeReceiptImage(bytes);
+    final aiData = await _aiService.analyzeReceiptImage(bytes, typeHint: ReceiptType.mechanic);
     
     if (aiData != null && aiData['items'] != null) {
       final List<dynamic> servicesData = aiData['items'];
@@ -160,6 +168,7 @@ class ReceiptParserService {
         mechanicName: aiData['name']?.toString(),
         services: services,
         totalAmount: _parseDouble(aiData['total_amount']),
+        currency: aiData['currency']?.toString(),
       );
     }
 
@@ -187,9 +196,9 @@ class ReceiptParserService {
   }
 
   /// Master parsing function that lets Gemini classify the receipt
-  Future<dynamic> parseAnyReceipt(String imagePath) async {
+  Future<dynamic> parseAnyReceipt(String imagePath, {ReceiptType? typeHint}) async {
     final bytes = await File(imagePath).readAsBytes();
-    final aiData = await _aiService.analyzeReceiptImage(bytes);
+    final aiData = await _aiService.analyzeReceiptImage(bytes, typeHint: typeHint);
 
     if (aiData == null) {
       debugPrint('PARSER_SERVICE: AI returned null data for the image.');

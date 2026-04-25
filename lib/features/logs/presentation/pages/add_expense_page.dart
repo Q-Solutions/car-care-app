@@ -16,8 +16,12 @@ import '../../../../core/services/ocr_service.dart';
 import '../../../../core/services/receipt_parser_service.dart';
 import '../../../../core/services/settings_service.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'location_picker_page.dart';
 import '../../data/models/fuel_log_model.dart';
 import '../../data/models/maintenance_log_model.dart';
+import '../../data/models/location_model.dart';
 
 import '../bloc/dashboard_bloc.dart';
 
@@ -40,6 +44,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
   String _selectedCategory = 'General';
   DateTime _selectedDate = DateTime.now();
   String? _photoPath;
+  LocationModel? _selectedLocation;
+  String? _scannedCurrency;
   bool _isProcessing = false;
   bool _isManualEntry = false;
 
@@ -77,6 +83,9 @@ class _AddExpensePageState extends State<AddExpensePage> {
         }
         if (fuelData.stationName != null) {
           _notesController.text = 'From ${fuelData.stationName}';
+        }
+        if (fuelData.currency != null) {
+          _scannedCurrency = fuelData.currency;
         }
         _isManualEntry = true;
         _isProcessing = false;
@@ -139,12 +148,15 @@ class _AddExpensePageState extends State<AddExpensePage> {
         _odometerController.text = log.odometer.toString();
         _litersController.text = log.liters.toString();
         _photoPath = log.odometerPhotoPath;
+        _selectedLocation = log.location;
+        _scannedCurrency = log.currency;
       } else if (log is MaintenanceLogModel) {
         _selectedCategory = log.category;
         if (log.odometer != null) {
           _odometerController.text = log.odometer.toString();
         }
         _photoPath = log.photoPath;
+        _scannedCurrency = log.currency;
       }
     }
   }
@@ -195,6 +207,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
           liters: liters,
           photoPath: _photoPath,
           vehicleId: vehicleId,
+          location: _selectedLocation,
+          currency: _scannedCurrency,
         ));
       } else {
         context.read<ExpenseLogBloc>().add(SaveExpenseLog(
@@ -206,6 +220,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
           liters: liters,
           photoPath: _photoPath,
           vehicleId: vehicleId,
+          location: _selectedLocation,
+          currency: _scannedCurrency,
         ));
       }
     }
@@ -279,39 +295,43 @@ class _AddExpensePageState extends State<AddExpensePage> {
                         Center(
                           child: Column(
                             children: [
-                              SizedBox(
-                                width: 200,
+                              Container(
+                                width: 250,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                                ),
                                 child: TextFormField(
                                   controller: _costController,
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 48,
+                                  autofocus: widget.existingLog != null,
+                                  style: GoogleFonts.robotoMono(
+                                    fontSize: 42,
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
                                     hintText: '0.00',
-                                    hintStyle: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-                                    ),
                                     prefixText: '${getIt<SettingsService>().currency} ',
                                     prefixStyle: TextStyle(
-                                      fontSize: 36,
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 12),
                               Text(
-                                'Enter amount',
+                                'Tap to edit amount',
                                 style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                                 ),
                               ),
                             ],
@@ -517,6 +537,65 @@ class _AddExpensePageState extends State<AddExpensePage> {
                           ),
                           const SizedBox(height: 20),
                         ],
+
+                        _buildLabel('Location (Optional)'),
+                        InkWell(
+                          onTap: () async {
+                            final LatLng? picked = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LocationPickerPage(
+                                  initialLocation: _selectedLocation != null 
+                                      ? LatLng(_selectedLocation!.latitude, _selectedLocation!.longitude)
+                                      : null,
+                                ),
+                              ),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _selectedLocation = LocationModel(
+                                  latitude: picked.latitude,
+                                  longitude: picked.longitude,
+                                  timestamp: DateTime.now(),
+                                );
+                              });
+                            }
+                          },
+                          child: Container(
+                            height: 56,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).inputDecorationTheme.fillColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Theme.of(context).dividerColor),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.location_on, color: _selectedLocation != null ? Colors.blueAccent : Theme.of(context).hintColor),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _selectedLocation != null 
+                                        ? '${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}'
+                                        : 'Select location from map',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: _selectedLocation != null 
+                                          ? Theme.of(context).colorScheme.onSurface
+                                          : Theme.of(context).hintColor,
+                                    ),
+                                  ),
+                                ),
+                                if (_selectedLocation != null)
+                                  IconButton(
+                                    icon: const Icon(Icons.close, size: 20),
+                                    onPressed: () => setState(() => _selectedLocation = null),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
 
                         _buildLabel('Notes'),
                         TextFormField(

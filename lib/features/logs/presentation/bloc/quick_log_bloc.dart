@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/ocr_service.dart';
+import '../../../../core/services/ai_service.dart';
 import '../../../../core/services/receipt_parser_service.dart';
 import '../../data/models/fuel_log_model.dart';
 import '../../data/models/location_model.dart';
@@ -134,7 +135,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
     debugPrint('QUICK_LOG_BLOC: Status -> Processing. Path: ${state.imageFile!.path}');
 
     try {
-      final parsed = await _receiptParserService.parseAnyReceipt(state.imageFile!.path);
+      final dynamic parsed = await _receiptParserService.parseAnyReceipt(state.imageFile!.path, typeHint: ReceiptType.fuel);
       debugPrint('QUICK_LOG_BLOC: Result from Parser: ${parsed?.runtimeType}');
 
       if (parsed is ParsedFuelReceipt) {
@@ -144,6 +145,7 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
           stationName: parsed.stationName,
           cost: parsed.totalAmount,
           liters: parsed.liters,
+          scannedCurrency: parsed.currency,
         ));
       } else if (parsed is ParsedPOSReceipt) {
         emit(state.copyWith(
@@ -151,6 +153,8 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
           receiptType: ReceiptType.pos,
           stationName: parsed.storeName,
           parsedPOSItems: parsed.items,
+          cost: parsed.totalAmount,
+          scannedCurrency: parsed.currency,
         ));
       } else if (parsed is ParsedMechanicBill) {
         emit(state.copyWith(
@@ -158,6 +162,8 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
           receiptType: ReceiptType.mechanic,
           stationName: parsed.mechanicName,
           parsedServiceItems: parsed.services,
+          cost: parsed.totalAmount,
+          scannedCurrency: parsed.currency,
         ));
       } else {
         // Fallback or Unknown
@@ -169,9 +175,10 @@ class QuickLogBloc extends Bloc<QuickLogEvent, QuickLogState> {
       }
     } catch (e) {
       debugPrint('QUICK_LOG_BLOC Error: $e');
+      final message = e is AIException ? e.message : 'AI Processing failed: $e';
       emit(state.copyWith(
         status: QuickLogStatus.error,
-        errorMessage: 'AI Processing failed: $e',
+        errorMessage: message,
       ));
     }
   }

@@ -8,7 +8,7 @@ class FakeAIService implements AIService {
   Map<String, dynamic>? currentResponse;
 
   @override
-  Future<Map<String, dynamic>?> analyzeReceiptImage(Uint8List imageBytes) async {
+  Future<Map<String, dynamic>?> analyzeReceiptImage(Uint8List imageBytes, {ReceiptType? typeHint}) async {
     return currentResponse;
   }
   

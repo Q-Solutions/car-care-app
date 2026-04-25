@@ -17,9 +17,13 @@ class SettingsService extends ChangeNotifier {
   static const String _aiModelKey = 'ai_model';
 
   late Box settingsBox;
+  bool _isInitialized = false;
 
   Future<void> init() async {
+    if (_isInitialized) return;
     settingsBox = await Hive.openBox(_boxName);
+    _isInitialized = true;
+    debugPrint('SETTINGS_SERVICE: Initialized box. Current currency: ${currency}');
   }
 
   final _currencyController = StreamController<String>.broadcast();
@@ -29,20 +33,24 @@ class SettingsService extends ChangeNotifier {
   Stream<String> get dateFormatStream => _dateFormatController.stream;
 
   String get currency {
+    if (!_isInitialized) return r'$';
     return settingsBox.get(_currencyKey, defaultValue: r'$');
   }
   
   Future<void> setCurrency(String value) async {
+    debugPrint('SETTINGS_SERVICE: Saving currency: $value');
     await settingsBox.put(_currencyKey, value);
     _currencyController.add(value);
     notifyListeners();
   }
 
   String get dateFormat {
+    if (!_isInitialized) return 'dd/MM/yyyy';
     return settingsBox.get(_dateFormatKey, defaultValue: 'dd/MM/yyyy');
   }
 
   Future<void> setDateFormat(String value) async {
+    debugPrint('SETTINGS_SERVICE: Saving date format: $value');
     await settingsBox.put(_dateFormatKey, value);
     _dateFormatController.add(value);
     notifyListeners();

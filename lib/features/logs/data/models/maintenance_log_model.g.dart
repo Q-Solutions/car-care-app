@@ -26,13 +26,14 @@ class MaintenanceLogModelAdapter extends TypeAdapter<MaintenanceLogModel> {
       photoPath: fields[5] as String?,
       odometer: (fields[7] as num?)?.toInt(),
       vehicleId: fields[9] as String?,
+      currency: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MaintenanceLogModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class MaintenanceLogModelAdapter extends TypeAdapter<MaintenanceLogModel> {
       ..writeByte(8)
       ..write(obj.userId)
       ..writeByte(9)
-      ..write(obj.vehicleId);
+      ..write(obj.vehicleId)
+      ..writeByte(10)
+      ..write(obj.currency);
   }
 
   @override
@@ -79,6 +82,7 @@ MaintenanceLogModel _$MaintenanceLogModelFromJson(Map<String, dynamic> json) =>
       photoPath: json['photoPath'] as String?,
       odometer: (json['odometer'] as num?)?.toInt(),
       vehicleId: json['vehicleId'] as String?,
+      currency: json['currency'] as String?,
     );
 
 Map<String, dynamic> _$MaintenanceLogModelToJson(
@@ -93,4 +97,5 @@ Map<String, dynamic> _$MaintenanceLogModelToJson(
   'odometer': instance.odometer,
   'userId': instance.userId,
   'vehicleId': instance.vehicleId,
+  'currency': instance.currency,
 };

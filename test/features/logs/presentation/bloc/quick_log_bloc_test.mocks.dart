@@ -5,6 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i8;
 
+import 'package:carlog/core/services/ai_service.dart' as _i14;
 import 'package:carlog/core/services/location_service.dart' as _i11;
 import 'package:carlog/core/services/ocr_service.dart' as _i13;
 import 'package:carlog/core/services/receipt_parser_service.dart' as _i3;
@@ -21,7 +22,7 @@ import 'package:geolocator/geolocator.dart' as _i12;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart'
     as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i14;
+import 'package:mockito/src/dummies.dart' as _i15;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -139,6 +140,16 @@ class MockLogRepository extends _i1.Mock implements _i7.LogRepository {
           as _i8.Future<List<_i9.FuelLogModel>>);
 
   @override
+  _i8.Future<List<_i9.FuelLogModel>> getAllFuelLogs() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllFuelLogs, []),
+            returnValue: _i8.Future<List<_i9.FuelLogModel>>.value(
+              <_i9.FuelLogModel>[],
+            ),
+          )
+          as _i8.Future<List<_i9.FuelLogModel>>);
+
+  @override
   _i8.Future<void> addMaintenanceLog(_i10.MaintenanceLogModel? log) =>
       (super.noSuchMethod(
             Invocation.method(#addMaintenanceLog, [log]),
@@ -188,6 +199,24 @@ class MockLogRepository extends _i1.Mock implements _i7.LogRepository {
   _i8.Future<void> deleteMaintenanceLog(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteMaintenanceLog, [id]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> updateFuelLog(_i9.FuelLogModel? log) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateFuelLog, [log]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> updateMaintenanceLog(_i10.MaintenanceLogModel? log) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateMaintenanceLog, [log]),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
@@ -291,9 +320,16 @@ class MockReceiptParserService extends _i1.Mock
           as _i8.Future<_i3.ParsedMechanicBill>);
 
   @override
-  _i8.Future<dynamic> parseAnyReceipt(String? imagePath) =>
+  _i8.Future<dynamic> parseAnyReceipt(
+    String? imagePath, {
+    _i14.ReceiptType? typeHint,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#parseAnyReceipt, [imagePath]),
+            Invocation.method(
+              #parseAnyReceipt,
+              [imagePath],
+              {#typeHint: typeHint},
+            ),
             returnValue: _i8.Future<dynamic>.value(),
           )
           as _i8.Future<dynamic>);
@@ -678,7 +714,7 @@ class MockFirebaseAuth extends _i1.Mock implements _i6.FirebaseAuth {
       (super.noSuchMethod(
             Invocation.method(#verifyPasswordResetCode, [code]),
             returnValue: _i8.Future<String>.value(
-              _i14.dummyValue<String>(
+              _i15.dummyValue<String>(
                 this,
                 Invocation.method(#verifyPasswordResetCode, [code]),
               ),
@@ -806,7 +842,7 @@ class MockUser extends _i1.Mock implements _i6.User {
   String get uid =>
       (super.noSuchMethod(
             Invocation.getter(#uid),
-            returnValue: _i14.dummyValue<String>(this, Invocation.getter(#uid)),
+            returnValue: _i15.dummyValue<String>(this, Invocation.getter(#uid)),
           )
           as String);
 
