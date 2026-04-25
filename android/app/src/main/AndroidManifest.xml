@@ -8,6 +8,11 @@
         android:label="Carlog"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAMriumV4xO92Ho2SZoxO_Z4uNOtXNmgjM" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

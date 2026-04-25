@@ -84,7 +84,7 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + MediaQuery.of(context).padding.bottom),
       child: BlocListener<QuickLogBloc, QuickLogState>(
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
@@ -162,54 +162,18 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
               ),
               const SizedBox(height: 16),
 
-              // Grid for Volume and Cost
+              // Row for Volume and Cost
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                                    Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildField(
-                          controller: _litersController,
-                          label: 'Volume',
-                          icon: Icons.local_gas_station,
-                          suffix: 'L',
-                        ),
-                        const SizedBox(height: 12),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 2.5,
-                          children: [1, 5, 10, 20].map((val) => InkWell(
-                            onTap: () {
-                              double current = double.tryParse(_litersController.text) ?? 0.0;
-                              _litersController.text = (current + val).toStringAsFixed(1);
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF135BEC).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFF135BEC).withOpacity(0.4), width: 1.5),
-                              ),
-                              child: Text(
-                                '+$val L', 
-                                style: GoogleFonts.inter(
-                                  color: const Color(0xFF135BEC), 
-                                  fontSize: 16, 
-                                  fontWeight: FontWeight.bold
-                                )
-                              ),
-                            ),
-                          )).toList(),
-                        ),
-                      ],
+                  Expanded(
+                    child: _buildField(
+                      controller: _litersController,
+                      label: 'Volume',
+                      icon: Icons.local_gas_station,
+                      suffix: 'L',
                     ),
                   ),
-
                   const SizedBox(width: 16),
                   Expanded(
                     child: BlocBuilder<QuickLogBloc, QuickLogState>(
@@ -224,6 +188,39 @@ class _FuelLogManualEntrySheetState extends State<FuelLogManualEntrySheet> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+
+              // Swatches spread to full width
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 4,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.6,
+                children: [1, 5, 10, 20].map((val) => InkWell(
+                  onTap: () {
+                    double current = double.tryParse(_litersController.text) ?? 0.0;
+                    _litersController.text = (current + val).toStringAsFixed(1);
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF135BEC).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF135BEC).withOpacity(0.4), width: 1.5),
+                    ),
+                    child: Text(
+                      '+$val L', 
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF135BEC), 
+                        fontSize: 14, 
+                        fontWeight: FontWeight.bold
+                      )
+                    ),
+                  ),
+                )).toList(),
               ),
 
               const SizedBox(height: 24),

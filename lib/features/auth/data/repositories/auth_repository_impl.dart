@@ -46,18 +46,28 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       debugPrint("Starting Google Sign-In (v7 logic)...");
 
-      // authenticate() is the core method in v7.x for interactive sign-in
-      final GoogleSignInAccount user = await _googleSignIn.authenticate();
+      // authenticate() is used in this project's version of GoogleSignIn
+      final GoogleSignInAccount? user = await _googleSignIn.authenticate();
+      
+      if (user == null) {
+        debugPrint("Google Sign-In was aborted by user.");
+        throw FirebaseAuthException(
+          code: 'google-sign-in-cancelled',
+          message: 'Sign-in was cancelled.',
+        );
+      }
       
       debugPrint("Google User obtained: ${user.email}");
       
+      // In this version, authentication is a synchronous getter
       final GoogleSignInAuthentication gAuth = user.authentication;
       debugPrint("Tokens received → ID Token: ${gAuth.idToken != null}");
 
       if (gAuth.idToken == null) {
+        debugPrint("ERROR: Google ID Token is missing. Check Firebase/Google Console configuration.");
         throw FirebaseAuthException(
           code: 'missing-google-id-token',
-          message: 'Google ID Token is missing',
+          message: 'Google ID Token is missing. This usually means the SHA-1 fingerprint is not configured correctly in Firebase.',
         );
       }
 
@@ -72,6 +82,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return userCredential;
     } on PlatformException catch (e, stack) {
       debugPrint("Google Sign-In Platform Error: ${e.code} - ${e.message}");
+      debugPrint("Details: ${e.details}");
       debugPrint("Stack Trace: $stack");
 
       if (!kIsWeb && Firebase.apps.isNotEmpty) {
@@ -84,19 +95,22 @@ class AuthRepositoryImpl implements AuthRepository {
       switch (e.code) {
         case '12501':
           code = 'google-sign-in-cancelled';
-          message = 'Google sign-in was cancelled by the user.';
+          message = 'Sign-in cancelled by user.';
           break;
         case '10':
-          message = 'Developer error: This usually means the SHA-1 fingerprint is missing in Firebase or the configuration is incorrect.';
+          message = 'Developer error (10): This usually means the SHA-1 fingerprint is missing in Firebase or the configuration is incorrect.';
           break;
         case '12500':
-          message = 'Sign-in failed. Please ensure Google Play Services is updated and you have a valid internet connection.';
+          message = 'Sign-in failed (12500). Please check internet connection and Google Play Services.';
           break;
         case '7':
-          message = 'Network error. Please check your internet connection.';
+          message = 'Network error (7). Check your internet connection.';
+          break;
+        case '16':
+          message = 'Account reauth failed (16). This may happen if the Google Sign-In configuration is invalid or the tokens expired.';
           break;
         default:
-          message = e.message ?? 'An unknown Google Sign-In error occurred (Code: ${e.code})';
+          message = 'Google Sign-In Error [${e.code}]: ${e.message ?? 'Unknown error'}';
       }
 
       throw FirebaseAuthException(
@@ -119,13 +133,13 @@ class AuthRepositoryImpl implements AuthRepository {
       if (error.contains('cancel') || error.contains('abort')) {
         throw FirebaseAuthException(
           code: 'google-sign-in-cancelled',
-          message: 'Google sign-in was cancelled by user',
+          message: 'Sign-in was cancelled.',
         );
       }
 
       throw FirebaseAuthException(
         code: 'google-sign-in-failed',
-        message: 'Google Sign-In failed: ${e.toString()}',
+        message: 'Google Sign-In Unexpected Error: ${e.toString()}',
       );
     }
   }
